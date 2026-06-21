@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -135,43 +135,9 @@
         .screen-content { display: none; }
         .screen-content.active { display: block; }
 
+        /* إخفاء شاشة الدخول فوراً */
         .login-hidden { display: none !important; }
         
-        .salary-cert {
-            font-family: 'Cairo', sans-serif;
-            line-height: 1.8;
-        }
-        .salary-cert .header {
-            border-bottom: 3px solid #065f46;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        .salary-cert .footer {
-            border-top: 3px solid #065f46;
-            padding-top: 15px;
-            margin-top: 20px;
-        }
-        .salary-cert .title {
-            background: #f0fdf4;
-            border: 2px solid #065f46;
-            padding: 8px 30px;
-            border-radius: 50px;
-            display: inline-block;
-            font-size: 20px;
-            font-weight: bold;
-            color: #065f46;
-        }
-        .salary-cert table td {
-            padding: 8px 12px;
-            border: 1px solid #d1d5db;
-        }
-        .salary-cert table td:first-child {
-            background: #f0fdf4;
-            font-weight: bold;
-            width: 30%;
-        }
-
-        /* تنسيق الصورة المؤقتة */
         .logo-placeholder {
             width: 120px;
             height: 120px;
@@ -210,18 +176,23 @@
             color: #10b981;
             margin: 0 auto;
         }
+
+        /* إخفاء كل شيء أثناء تحميل الصفحة */
+        #loading-state {
+            display: none;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen overflow-x-hidden">
 
-    <!-- شاشة تسجيل الدخول -->
-    <div id="login-screen" class="flex-grow flex items-center justify-center min-h-screen bg-cover bg-center" style="background-image: linear-gradient(rgba(16, 185, 129, 0.1), rgba(4, 120, 87, 0.3)), url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&q=80&w=1200');">
+    <!-- شاشة تسجيل الدخول - مخفية دائماً حتى يتم تسجيل الدخول -->
+    <div id="login-screen" class="hidden flex-grow flex items-center justify-center min-h-screen bg-cover bg-center" style="background-image: linear-gradient(rgba(16, 185, 129, 0.1), rgba(4, 120, 87, 0.3)), url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&q=80&w=1200');">
         <div class="bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md mx-4 border-0">
             <div class="text-center mb-8">
                 <div class="w-[120px] h-[120px] bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
                     <img id="login-logo" src="" alt="شعار الشركة" class="w-[120px] h-[120px] object-cover hidden">
                     <div id="login-logo-placeholder" class="logo-placeholder">
-                        <i class="fa-solid fa-sheep"></i>
+                        <i class="fa-solid fa-image"></i>
                     </div>
                 </div>
                 <h2 class="text-2xl font-bold text-gray-800">الجزيرة الخضراء للمواشي والاغنام</h2>
@@ -267,7 +238,7 @@
                 </button>
                 <img id="header-logo" src="" alt="شعار الشركة" class="w-[40px] h-[40px] object-cover rounded-md hidden">
                 <div id="header-logo-placeholder" class="logo-placeholder-small">
-                    <i class="fa-solid fa-sheep"></i>
+                    <i class="fa-solid fa-image"></i>
                 </div>
                 <div>
                     <h1 class="text-base md:text-xl font-bold text-emerald-900 leading-tight">شركة الجزيرة الخضراء لتجارة الأغنام والمواشي</h1>
@@ -716,7 +687,6 @@
                         <h2 class="text-xl md:text-2xl font-bold text-emerald-900">التقارير</h2>
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <!-- تقرير الحضور والانصراف وكشف الرواتب -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-500/10">
                             <h3 class="text-base md:text-lg font-bold text-gray-800 mb-4 border-b pb-2">
                                 <i class="fa-solid fa-file-alt text-emerald-600 ml-2"></i>
@@ -752,7 +722,6 @@
                             </div>
                         </div>
 
-                        <!-- شهادة راتب موظف -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-500/10">
                             <h3 class="text-base md:text-lg font-bold text-gray-800 mb-4 border-b pb-2">
                                 <i class="fa-solid fa-certificate text-emerald-600 ml-2"></i>
@@ -1154,7 +1123,7 @@
                                 <div class="w-[80px] h-[80px] bg-emerald-50 rounded-lg border-2 border-emerald-200 flex items-center justify-center overflow-hidden">
                                     <img id="settings-logo-preview" src="" alt="الشعار" class="w-[80px] h-[80px] object-cover hidden">
                                     <div id="settings-logo-placeholder" class="text-emerald-400 text-3xl">
-                                        <i class="fa-solid fa-sheep"></i>
+                                        <i class="fa-solid fa-image"></i>
                                     </div>
                                 </div>
                                 <span class="text-xs text-gray-500">معاينة الشعار</span>
@@ -1267,7 +1236,7 @@
             <div class="text-center">
                 <img id="cert-logo" src="" alt="الشعار" class="w-16 h-16 object-cover rounded-md border border-emerald-400 mx-auto mb-1 hidden">
                 <div id="cert-logo-placeholder" class="logo-placeholder-cert">
-                    <i class="fa-solid fa-sheep"></i>
+                    <i class="fa-solid fa-image"></i>
                 </div>
                 <span class="text-[10px] font-bold text-gray-400">شعار معتمد</span>
             </div>
@@ -1502,7 +1471,6 @@
         function updateLogoDisplay() {
             const logo = appState.settings.logoImage;
             
-            // شاشة الدخول
             const loginLogo = document.getElementById('login-logo');
             const loginPlaceholder = document.getElementById('login-logo-placeholder');
             if (logo) {
@@ -1514,7 +1482,6 @@
                 loginPlaceholder.classList.remove('hidden');
             }
 
-            // الهيدر
             const headerLogo = document.getElementById('header-logo');
             const headerPlaceholder = document.getElementById('header-logo-placeholder');
             if (logo) {
@@ -1526,7 +1493,6 @@
                 headerPlaceholder.classList.remove('hidden');
             }
 
-            // الشهادة
             const certLogo = document.getElementById('cert-logo');
             const certPlaceholder = document.getElementById('cert-logo-placeholder');
             if (logo) {
@@ -1538,7 +1504,6 @@
                 certPlaceholder.classList.remove('hidden');
             }
 
-            // الإعدادات - معاينة
             const settingsLogo = document.getElementById('settings-logo-preview');
             const settingsPlaceholder = document.getElementById('settings-logo-placeholder');
             if (logo) {
@@ -1759,6 +1724,9 @@
         }
         setInterval(updateLiveDateTime, 1000);
 
+        // ============================================
+        // التحقق من الجلسة - يتم تنفيذه فوراً عند تحميل الصفحة
+        // ============================================
         function checkSessionAndShowDashboard() {
             const savedUser = localStorage.getItem('gilm_user');
             const savedScreen = localStorage.getItem('gilm_screen');
@@ -1772,7 +1740,9 @@
                         if (savedScreen) {
                             appState.currentScreen = savedScreen;
                         }
+                        // إخفاء شاشة الدخول فوراً
                         document.getElementById('login-screen').classList.add('login-hidden');
+                        document.getElementById('login-screen').classList.add('hidden');
                         showDashboard();
                         return true;
                     }
@@ -1866,7 +1836,7 @@
         }
 
         // ============================================
-        // حفظ واستعادة الحالة
+        // حفظ واستعادة الحالة عند التحديث
         // ============================================
         window.addEventListener('beforeunload', function(e) {
             if (appState.currentActiveUser) {
@@ -3497,7 +3467,7 @@
         }
 
         // ============================================
-        // بدء التشغيل
+        // بدء التشغيل - التحقق الفوري
         // ============================================
         window.onload = async function() {
             await loadAllData();
@@ -3511,6 +3481,7 @@
             console.log("📋 المستخدمين المسجلين:");
             console.table(appState.settings.users);
 
+            // التحقق الفوري من الجلسة
             const hasSession = checkSessionAndShowDashboard();
             
             if (!hasSession) {
