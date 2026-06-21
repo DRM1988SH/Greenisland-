@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -136,7 +137,6 @@
 
         .login-hidden { display: none !important; }
         
-        /* تنسيق شهادة الراتب */
         .salary-cert {
             font-family: 'Cairo', sans-serif;
             line-height: 1.8;
@@ -170,6 +170,46 @@
             font-weight: bold;
             width: 30%;
         }
+
+        /* تنسيق الصورة المؤقتة */
+        .logo-placeholder {
+            width: 120px;
+            height: 120px;
+            background: #f0fdf4;
+            border: 2px dashed #10b981;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: #10b981;
+            margin: 0 auto;
+        }
+        .logo-placeholder-small {
+            width: 40px;
+            height: 40px;
+            background: #f0fdf4;
+            border: 2px dashed #10b981;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #10b981;
+        }
+        .logo-placeholder-cert {
+            width: 64px;
+            height: 64px;
+            background: #f0fdf4;
+            border: 2px dashed #10b981;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: #10b981;
+            margin: 0 auto;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen overflow-x-hidden">
@@ -179,7 +219,10 @@
         <div class="bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md mx-4 border-0">
             <div class="text-center mb-8">
                 <div class="w-[120px] h-[120px] bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
-                    <img id="login-logo" src="https://cdn-icons-png.flaticon.com/512/616/616490.png" alt="شعار الشركة" class="w-[120px] h-[120px] object-cover">
+                    <img id="login-logo" src="" alt="شعار الشركة" class="w-[120px] h-[120px] object-cover hidden">
+                    <div id="login-logo-placeholder" class="logo-placeholder">
+                        <i class="fa-solid fa-sheep"></i>
+                    </div>
                 </div>
                 <h2 class="text-2xl font-bold text-gray-800">الجزيرة الخضراء للمواشي والاغنام</h2>
                 <p class="text-sm text-emerald-600 font-semibold mt-1">Green Island Livestock</p>
@@ -222,7 +265,10 @@
                 <button onclick="toggleSidebar()" class="p-2 text-emerald-900 hover:bg-emerald-200 rounded-xl focus:outline-none transition-colors duration-200">
                     <i class="fa-solid fa-bars text-xl"></i>
                 </button>
-                <img id="header-logo" src="https://cdn-icons-png.flaticon.com/512/616/616490.png" alt="شعار الشركة" class="w-[40px] h-[40px] object-cover rounded-md">
+                <img id="header-logo" src="" alt="شعار الشركة" class="w-[40px] h-[40px] object-cover rounded-md hidden">
+                <div id="header-logo-placeholder" class="logo-placeholder-small">
+                    <i class="fa-solid fa-sheep"></i>
+                </div>
                 <div>
                     <h1 class="text-base md:text-xl font-bold text-emerald-900 leading-tight">شركة الجزيرة الخضراء لتجارة الأغنام والمواشي</h1>
                     <p class="text-[10px] md:text-xs text-emerald-700 font-semibold" id="user-display-info">مرحباً بك في النظام الرئيسي</p>
@@ -1101,14 +1147,23 @@
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-500/10 space-y-4">
                             <h3 class="text-base md:text-lg font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-image text-emerald-600 ml-2"></i>تخصيص الشعار</h3>
                             <div>
-                                <label class="block text-xs font-semibold text-gray-500 mb-1">تغيير شعار النظام</label>
-                                <input type="file" id="logo-uploader" onchange="uploadLogo(this)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                                <label class="block text-xs font-semibold text-gray-500 mb-1">تحميل شعار النظام</label>
+                                <input type="file" id="logo-uploader" accept="image/*" onchange="uploadLogo(this)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <div class="w-[80px] h-[80px] bg-emerald-50 rounded-lg border-2 border-emerald-200 flex items-center justify-center overflow-hidden">
+                                    <img id="settings-logo-preview" src="" alt="الشعار" class="w-[80px] h-[80px] object-cover hidden">
+                                    <div id="settings-logo-placeholder" class="text-emerald-400 text-3xl">
+                                        <i class="fa-solid fa-sheep"></i>
+                                    </div>
+                                </div>
+                                <span class="text-xs text-gray-500">معاينة الشعار</span>
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-500 mb-1">تغيير صورة الخلفية الترحيبية</label>
-                                <input type="file" id="welcome-img-uploader" onchange="uploadWelcomeImage(this)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
+                                <input type="file" id="welcome-img-uploader" accept="image/*" onchange="uploadWelcomeImage(this)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
                             </div>
-                            <button onclick="resetBranding()" class="text-xs text-rose-600 hover:underline">إعادة ضبط الصور الافتراضية</button>
+                            <button onclick="resetBranding()" class="text-xs text-rose-600 hover:underline">إعادة تعيين الصور الافتراضية</button>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-500/10 space-y-4">
                             <h3 class="text-base md:text-lg font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-map-location-dot text-emerald-600 ml-2"></i>إدارة المسالخ</h3>
@@ -1210,7 +1265,10 @@
                 <p class="text-xs text-emerald-700 font-bold mt-2">شركة الشخص الواحد</p>
             </div>
             <div class="text-center">
-                <img id="cert-logo" src="https://cdn-icons-png.flaticon.com/512/616/616490.png" alt="الشعار" class="w-16 h-16 object-cover rounded-md border border-emerald-400 mx-auto mb-1">
+                <img id="cert-logo" src="" alt="الشعار" class="w-16 h-16 object-cover rounded-md border border-emerald-400 mx-auto mb-1 hidden">
+                <div id="cert-logo-placeholder" class="logo-placeholder-cert">
+                    <i class="fa-solid fa-sheep"></i>
+                </div>
                 <span class="text-[10px] font-bold text-gray-400">شعار معتمد</span>
             </div>
         </div>
@@ -1286,8 +1344,8 @@
                     "مسالخ مدينة أبوظبي": ["مسلخ بني ياس"],
                     "مسالخ مدينة العين": ["مسلخ اليحر"]
                 },
-                logoImage: "https://cdn-icons-png.flaticon.com/512/616/616490.png",
-                welcomeImage: "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&q=80&w=1200"
+                logoImage: null,
+                welcomeImage: null
             },
             currentActiveUser: null,
             currentScreen: 'emp-manage'
@@ -1439,6 +1497,76 @@
         }
 
         // ============================================
+        // دوال الصور
+        // ============================================
+        function updateLogoDisplay() {
+            const logo = appState.settings.logoImage;
+            
+            // شاشة الدخول
+            const loginLogo = document.getElementById('login-logo');
+            const loginPlaceholder = document.getElementById('login-logo-placeholder');
+            if (logo) {
+                loginLogo.src = logo;
+                loginLogo.classList.remove('hidden');
+                loginPlaceholder.classList.add('hidden');
+            } else {
+                loginLogo.classList.add('hidden');
+                loginPlaceholder.classList.remove('hidden');
+            }
+
+            // الهيدر
+            const headerLogo = document.getElementById('header-logo');
+            const headerPlaceholder = document.getElementById('header-logo-placeholder');
+            if (logo) {
+                headerLogo.src = logo;
+                headerLogo.classList.remove('hidden');
+                headerPlaceholder.classList.add('hidden');
+            } else {
+                headerLogo.classList.add('hidden');
+                headerPlaceholder.classList.remove('hidden');
+            }
+
+            // الشهادة
+            const certLogo = document.getElementById('cert-logo');
+            const certPlaceholder = document.getElementById('cert-logo-placeholder');
+            if (logo) {
+                certLogo.src = logo;
+                certLogo.classList.remove('hidden');
+                certPlaceholder.classList.add('hidden');
+            } else {
+                certLogo.classList.add('hidden');
+                certPlaceholder.classList.remove('hidden');
+            }
+
+            // الإعدادات - معاينة
+            const settingsLogo = document.getElementById('settings-logo-preview');
+            const settingsPlaceholder = document.getElementById('settings-logo-placeholder');
+            if (logo) {
+                settingsLogo.src = logo;
+                settingsLogo.classList.remove('hidden');
+                settingsPlaceholder.classList.add('hidden');
+            } else {
+                settingsLogo.classList.add('hidden');
+                settingsPlaceholder.classList.remove('hidden');
+            }
+        }
+
+        function updateWelcomeImage() {
+            if (appState.settings.welcomeImage) {
+                document.getElementById('login-screen').style.backgroundImage = 
+                    `linear-gradient(rgba(16, 185, 129, 0.1), rgba(4, 120, 87, 0.3)), url('${appState.settings.welcomeImage}')`;
+            } else {
+                document.getElementById('login-screen').style.backgroundImage = 
+                    `linear-gradient(rgba(16, 185, 129, 0.1), rgba(4, 120, 87, 0.3)), url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&q=80&w=1200')`;
+            }
+        }
+
+        function applyBrandingStyles() {
+            updateLogoDisplay();
+            updateWelcomeImage();
+        }
+
+        // ============================================
         // دوال الإشعارات
         // ============================================
         function addNotification(message, type = 'info', link = null) {
@@ -1586,8 +1714,6 @@
 
             populateEmployeesDropdowns();
             toggleInputVisibility();
-            
-            // تحديث قائمة الموظفين في شاشة التقارير
             populateReportDropdowns();
         }
 
@@ -1661,9 +1787,7 @@
             document.getElementById('login-screen').classList.remove('login-hidden');
             document.getElementById('login-screen').classList.remove('hidden');
             document.getElementById('main-app').classList.add('hidden');
-            if (appState.settings.logoImage) {
-                document.getElementById('login-logo').src = appState.settings.logoImage;
-            }
+            applyBrandingStyles();
         }
 
         function showDashboard() {
@@ -1716,18 +1840,6 @@
             localStorage.removeItem('gilm_screen');
             saveAllData();
             showLogin();
-        }
-
-        function applyBrandingStyles() {
-            if (appState.settings.logoImage) {
-                document.getElementById('header-logo').src = appState.settings.logoImage;
-                document.getElementById('cert-logo').src = appState.settings.logoImage;
-                document.getElementById('login-logo').src = appState.settings.logoImage;
-            }
-            if (appState.settings.welcomeImage) {
-                document.getElementById('login-screen').style.backgroundImage = 
-                    `linear-gradient(rgba(16, 185, 129, 0.1), rgba(4, 120, 87, 0.3)), url('${appState.settings.welcomeImage}')`;
-            }
         }
 
         function showToast(message) {
@@ -1897,7 +2009,6 @@
             renderRequestsTable();
         }
 
-        // تحديث قوائم التقارير
         function populateReportDropdowns() {
             const certSelect = document.getElementById('cert-emp-id');
             if (certSelect) {
@@ -2216,7 +2327,6 @@
             const dateFrom = document.getElementById('report-date-from').value;
             const dateTo = document.getElementById('report-date-to').value;
 
-            // تصفية الموظفين حسب الموقع
             let filteredEmployees = appState.employees.filter(emp => {
                 const matchMain = !mainSlaughterhouse || emp.mainSlaughterhouse === mainSlaughterhouse;
                 const matchSub = !subSlaughterhouse || emp.subSlaughterhouse === subSlaughterhouse;
@@ -2228,13 +2338,11 @@
                 return;
             }
 
-            // حساب أيام الحضور لكل موظف
             let rows = '';
             let totalSalary = 0;
             let totalAttendance = 0;
 
             filteredEmployees.forEach(emp => {
-                // حساب عدد أيام الحضور في الفترة المحددة
                 let attendanceDays = 0;
                 const empAttendance = appState.attendance.filter(a => a.empId === emp.empId);
                 
@@ -2335,7 +2443,6 @@
             const today = new Date().toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
             const hireDate = emp.hireDate ? new Date(emp.hireDate).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' }) : 'غير محدد';
             
-            // حساب عدد أيام الحضور لهذا الشهر
             const now = new Date();
             const monthStart = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01`;
             const monthEnd = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(new Date(now.getFullYear(), now.getMonth()+1, 0).getDate()).padStart(2,'0')}`;
@@ -3277,7 +3384,7 @@
         }
 
         // ============================================
-        // دوال الإعدادات
+        // دوال الإعدادات - الصور
         // ============================================
         function uploadLogo(inputObj) {
             if (inputObj.files && inputObj.files[0]) {
@@ -3306,13 +3413,16 @@
         }
 
         async function resetBranding() {
-            appState.settings.logoImage = "https://cdn-icons-png.flaticon.com/512/616/616490.png";
-            appState.settings.welcomeImage = "https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&q=80&w=1200";
+            appState.settings.logoImage = null;
+            appState.settings.welcomeImage = null;
             await saveAllData();
             applyBrandingStyles();
             alertCustom("تم إعادة تعيين الصور الافتراضية");
         }
 
+        // ============================================
+        // دوال الإعدادات - المستخدمين
+        // ============================================
         async function createNewUser(e) {
             e.preventDefault();
             if (!isAdmin()) {
@@ -3414,3 +3524,4 @@
 
 </body>
 </html>
+```
