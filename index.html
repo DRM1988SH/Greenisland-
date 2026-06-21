@@ -1,4 +1,4 @@
-
+```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -138,60 +138,55 @@
         /* إخفاء شاشة الدخول فوراً */
         .login-hidden { display: none !important; }
         
-        .logo-placeholder {
+        /* تنسيق الصورة المؤقتة - أيقونة فقط */
+        .logo-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f0fdf4;
+            border: 2px dashed #10b981;
+            color: #10b981;
+        }
+        .logo-icon-large {
             width: 120px;
             height: 120px;
-            background: #f0fdf4;
-            border: 2px dashed #10b981;
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            color: #10b981;
-            margin: 0 auto;
+            font-size: 48px;
         }
-        .logo-placeholder-small {
+        .logo-icon-small {
             width: 40px;
             height: 40px;
-            background: #f0fdf4;
-            border: 2px dashed #10b981;
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-            color: #10b981;
+            font-size: 18px;
         }
-        .logo-placeholder-cert {
+        .logo-icon-cert {
             width: 64px;
             height: 64px;
-            background: #f0fdf4;
-            border: 2px dashed #10b981;
             border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            color: #10b981;
-            margin: 0 auto;
+            font-size: 28px;
+        }
+        .logo-icon-settings {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            font-size: 32px;
         }
 
-        /* إخفاء كل شيء أثناء تحميل الصفحة */
-        #loading-state {
+        /* منع ظهور شاشة الدخول أثناء التحميل */
+        #app-loader {
             display: none;
         }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen overflow-x-hidden">
 
-    <!-- شاشة تسجيل الدخول - مخفية دائماً حتى يتم تسجيل الدخول -->
+    <!-- شاشة تسجيل الدخول - مخفية تماماً حتى يتم تسجيل الدخول -->
     <div id="login-screen" class="hidden flex-grow flex items-center justify-center min-h-screen bg-cover bg-center" style="background-image: linear-gradient(rgba(16, 185, 129, 0.1), rgba(4, 120, 87, 0.3)), url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&q=80&w=1200');">
         <div class="bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md mx-4 border-0">
             <div class="text-center mb-8">
                 <div class="w-[120px] h-[120px] bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4 overflow-hidden">
                     <img id="login-logo" src="" alt="شعار الشركة" class="w-[120px] h-[120px] object-cover hidden">
-                    <div id="login-logo-placeholder" class="logo-placeholder">
+                    <div id="login-logo-icon" class="logo-icon logo-icon-large">
                         <i class="fa-solid fa-image"></i>
                     </div>
                 </div>
@@ -237,7 +232,7 @@
                     <i class="fa-solid fa-bars text-xl"></i>
                 </button>
                 <img id="header-logo" src="" alt="شعار الشركة" class="w-[40px] h-[40px] object-cover rounded-md hidden">
-                <div id="header-logo-placeholder" class="logo-placeholder-small">
+                <div id="header-logo-icon" class="logo-icon logo-icon-small">
                     <i class="fa-solid fa-image"></i>
                 </div>
                 <div>
@@ -1114,7 +1109,8 @@
                     </div>
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-500/10 space-y-4">
-                            <h3 class="text-base md:text-lg font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-image text-emerald-600 ml-2"></i>تخصيص الشعار</h3>
+                            <h3 class="text-base md:text-lg font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-image text-emerald-600 ml-2"></i>شعار النظام</h3>
+                            <p class="text-xs text-gray-500">ارفع صورة واحدة لتظهر في جميع أنحاء النظام (الشعار، شاشة الدخول، التقارير)</p>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-500 mb-1">تحميل شعار النظام</label>
                                 <input type="file" id="logo-uploader" accept="image/*" onchange="uploadLogo(this)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
@@ -1122,17 +1118,13 @@
                             <div class="flex items-center gap-4">
                                 <div class="w-[80px] h-[80px] bg-emerald-50 rounded-lg border-2 border-emerald-200 flex items-center justify-center overflow-hidden">
                                     <img id="settings-logo-preview" src="" alt="الشعار" class="w-[80px] h-[80px] object-cover hidden">
-                                    <div id="settings-logo-placeholder" class="text-emerald-400 text-3xl">
+                                    <div id="settings-logo-icon" class="logo-icon logo-icon-settings">
                                         <i class="fa-solid fa-image"></i>
                                     </div>
                                 </div>
                                 <span class="text-xs text-gray-500">معاينة الشعار</span>
                             </div>
-                            <div>
-                                <label class="block text-xs font-semibold text-gray-500 mb-1">تغيير صورة الخلفية الترحيبية</label>
-                                <input type="file" id="welcome-img-uploader" accept="image/*" onchange="uploadWelcomeImage(this)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
-                            </div>
-                            <button onclick="resetBranding()" class="text-xs text-rose-600 hover:underline">إعادة تعيين الصور الافتراضية</button>
+                            <button onclick="resetLogo()" class="text-xs text-rose-600 hover:underline">إزالة الشعار واستخدام الأيقونة</button>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-500/10 space-y-4">
                             <h3 class="text-base md:text-lg font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-map-location-dot text-emerald-600 ml-2"></i>إدارة المسالخ</h3>
@@ -1225,7 +1217,7 @@
         </footer>
     </div>
 
-    <!-- قالب الطباعة الموحد للتقارير -->
+    <!-- قالب الطباعة للتقارير -->
     <div id="print-area" class="hidden p-12 bg-white text-gray-900 border-[16px] border-emerald-800 rounded-lg max-w-4xl mx-auto shadow-2xl relative min-h-[1000px] flex flex-col justify-between">
         <div class="flex justify-between items-center border-b-4 border-emerald-700 pb-6 mb-8">
             <div>
@@ -1235,7 +1227,7 @@
             </div>
             <div class="text-center">
                 <img id="cert-logo" src="" alt="الشعار" class="w-16 h-16 object-cover rounded-md border border-emerald-400 mx-auto mb-1 hidden">
-                <div id="cert-logo-placeholder" class="logo-placeholder-cert">
+                <div id="cert-logo-icon" class="logo-icon logo-icon-cert">
                     <i class="fa-solid fa-image"></i>
                 </div>
                 <span class="text-[10px] font-bold text-gray-400">شعار معتمد</span>
@@ -1313,11 +1305,11 @@
                     "مسالخ مدينة أبوظبي": ["مسلخ بني ياس"],
                     "مسالخ مدينة العين": ["مسلخ اليحر"]
                 },
-                logoImage: null,
-                welcomeImage: null
+                logoImage: null
             },
             currentActiveUser: null,
-            currentScreen: 'emp-manage'
+            currentScreen: 'emp-manage',
+            isInitialized: false
         };
 
         let isSidebarOpen = true;
@@ -1466,69 +1458,62 @@
         }
 
         // ============================================
-        // دوال الصور
+        // دوال الصور - صورة واحدة لكل التطبيق
         // ============================================
         function updateLogoDisplay() {
             const logo = appState.settings.logoImage;
             
+            // شاشة الدخول
             const loginLogo = document.getElementById('login-logo');
-            const loginPlaceholder = document.getElementById('login-logo-placeholder');
+            const loginIcon = document.getElementById('login-logo-icon');
             if (logo) {
                 loginLogo.src = logo;
                 loginLogo.classList.remove('hidden');
-                loginPlaceholder.classList.add('hidden');
+                loginIcon.classList.add('hidden');
             } else {
                 loginLogo.classList.add('hidden');
-                loginPlaceholder.classList.remove('hidden');
+                loginIcon.classList.remove('hidden');
             }
 
+            // الهيدر
             const headerLogo = document.getElementById('header-logo');
-            const headerPlaceholder = document.getElementById('header-logo-placeholder');
+            const headerIcon = document.getElementById('header-logo-icon');
             if (logo) {
                 headerLogo.src = logo;
                 headerLogo.classList.remove('hidden');
-                headerPlaceholder.classList.add('hidden');
+                headerIcon.classList.add('hidden');
             } else {
                 headerLogo.classList.add('hidden');
-                headerPlaceholder.classList.remove('hidden');
+                headerIcon.classList.remove('hidden');
             }
 
+            // شهادة
             const certLogo = document.getElementById('cert-logo');
-            const certPlaceholder = document.getElementById('cert-logo-placeholder');
+            const certIcon = document.getElementById('cert-logo-icon');
             if (logo) {
                 certLogo.src = logo;
                 certLogo.classList.remove('hidden');
-                certPlaceholder.classList.add('hidden');
+                certIcon.classList.add('hidden');
             } else {
                 certLogo.classList.add('hidden');
-                certPlaceholder.classList.remove('hidden');
+                certIcon.classList.remove('hidden');
             }
 
+            // الإعدادات - معاينة
             const settingsLogo = document.getElementById('settings-logo-preview');
-            const settingsPlaceholder = document.getElementById('settings-logo-placeholder');
+            const settingsIcon = document.getElementById('settings-logo-icon');
             if (logo) {
                 settingsLogo.src = logo;
                 settingsLogo.classList.remove('hidden');
-                settingsPlaceholder.classList.add('hidden');
+                settingsIcon.classList.add('hidden');
             } else {
                 settingsLogo.classList.add('hidden');
-                settingsPlaceholder.classList.remove('hidden');
-            }
-        }
-
-        function updateWelcomeImage() {
-            if (appState.settings.welcomeImage) {
-                document.getElementById('login-screen').style.backgroundImage = 
-                    `linear-gradient(rgba(16, 185, 129, 0.1), rgba(4, 120, 87, 0.3)), url('${appState.settings.welcomeImage}')`;
-            } else {
-                document.getElementById('login-screen').style.backgroundImage = 
-                    `linear-gradient(rgba(16, 185, 129, 0.1), rgba(4, 120, 87, 0.3)), url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&q=80&w=1200')`;
+                settingsIcon.classList.remove('hidden');
             }
         }
 
         function applyBrandingStyles() {
             updateLogoDisplay();
-            updateWelcomeImage();
         }
 
         // ============================================
@@ -1680,6 +1665,11 @@
             populateEmployeesDropdowns();
             toggleInputVisibility();
             populateReportDropdowns();
+            
+            // حفظ الشاشة في localStorage
+            if (appState.currentActiveUser) {
+                localStorage.setItem('gilm_screen', screenId);
+            }
         }
 
         function toggleInputVisibility() {
@@ -1725,9 +1715,9 @@
         setInterval(updateLiveDateTime, 1000);
 
         // ============================================
-        // التحقق من الجلسة - يتم تنفيذه فوراً عند تحميل الصفحة
+        // التحقق من الجلسة - استعادة الشاشة الحالية
         // ============================================
-        function checkSessionAndShowDashboard() {
+        function restoreSession() {
             const savedUser = localStorage.getItem('gilm_user');
             const savedScreen = localStorage.getItem('gilm_screen');
             
@@ -1739,15 +1729,13 @@
                         appState.currentActiveUser = validUser;
                         if (savedScreen) {
                             appState.currentScreen = savedScreen;
+                        } else {
+                            appState.currentScreen = 'emp-manage';
                         }
-                        // إخفاء شاشة الدخول فوراً
-                        document.getElementById('login-screen').classList.add('login-hidden');
-                        document.getElementById('login-screen').classList.add('hidden');
-                        showDashboard();
                         return true;
                     }
                 } catch (e) {
-                    console.error('Error restoring state:', e);
+                    console.error('Error restoring session:', e);
                 }
             }
             return false;
@@ -1801,6 +1789,8 @@
             renderRequestsTable();
             renderSystemUsersTable();
             toggleInputVisibility();
+            
+            appState.isInitialized = true;
         }
 
         function logout() {
@@ -1836,7 +1826,7 @@
         }
 
         // ============================================
-        // حفظ واستعادة الحالة عند التحديث
+        // حفظ الحالة عند التحديث
         // ============================================
         window.addEventListener('beforeunload', function(e) {
             if (appState.currentActiveUser) {
@@ -1856,6 +1846,7 @@
             if (loginUser(empId, code)) {
                 document.getElementById('login-error').classList.add('hidden');
                 localStorage.setItem('gilm_user', JSON.stringify(appState.currentActiveUser));
+                localStorage.setItem('gilm_screen', 'emp-manage');
                 showDashboard();
             } else {
                 document.getElementById('login-error').classList.remove('hidden');
@@ -2382,14 +2373,21 @@
 
             document.getElementById('cert-dynamic-content').innerHTML = content;
 
+            // إظهار عنصر الطباعة مؤقتاً
+            const printArea = document.getElementById('print-area');
+            printArea.style.display = 'block';
+
             const options = {
                 margin: [10, 10, 10, 10],
                 filename: `تقرير_الحضور_والرواتب_${new Date().toISOString().slice(0,10)}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().from(document.getElementById('print-area')).set(options).save();
+            
+            html2pdf().from(printArea).set(options).save().then(() => {
+                printArea.style.display = 'none';
+            });
         }
 
         // ============================================
@@ -2490,14 +2488,21 @@
 
             document.getElementById('cert-dynamic-content').innerHTML = content;
 
+            // إظهار عنصر الطباعة مؤقتاً
+            const printArea = document.getElementById('print-area');
+            printArea.style.display = 'block';
+
             const options = {
                 margin: [10, 10, 10, 10],
                 filename: `${certType}_${emp.name.replace(/\s+/g, '_')}_${new Date().toISOString().slice(0,10)}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().from(document.getElementById('print-area')).set(options).save();
+            
+            html2pdf().from(printArea).set(options).save().then(() => {
+                printArea.style.display = 'none';
+            });
         }
 
         // ============================================
@@ -2723,14 +2728,20 @@
 
             document.getElementById('cert-dynamic-content').innerHTML = content;
 
+            const printArea = document.getElementById('print-area');
+            printArea.style.display = 'block';
+
             const options = {
                 margin: [10, 10, 10, 10],
                 filename: `طلب_إجازة_${emp.name.replace(/\s+/g, '_')}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().from(document.getElementById('print-area')).set(options).save();
+            
+            html2pdf().from(printArea).set(options).save().then(() => {
+                printArea.style.display = 'none';
+            });
         }
 
         // ============================================
@@ -2818,14 +2829,15 @@
         }
 
         function printAttendanceReport() {
+            const printArea = document.getElementById('attendance-report-table');
             const options = {
                 margin: [15, 15, 15, 15],
                 filename: `تقرير_الحضور.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
             };
-            html2pdf().from(document.getElementById('attendance-report-table')).set(options).save();
+            html2pdf().from(printArea).set(options).save();
         }
 
         // ============================================
@@ -3052,14 +3064,15 @@
         }
 
         function printInventoryReport() {
+            const printArea = document.getElementById('inventory-report-table');
             const options = {
                 margin: [15, 15, 15, 15],
                 filename: `جرد_المخزون.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().from(document.getElementById('inventory-report-table')).set(options).save();
+            html2pdf().from(printArea).set(options).save();
         }
 
         // ============================================
@@ -3343,14 +3356,20 @@
 
             document.getElementById('cert-dynamic-content').innerHTML = content;
 
+            const printArea = document.getElementById('print-area');
+            printArea.style.display = 'block';
+
             const options = {
                 margin: [10, 10, 10, 10],
                 filename: `تقرير_طلبات_المواد.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
+                html2canvas: { scale: 2, useCORS: true, allowTaint: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
-            html2pdf().from(document.getElementById('print-area')).set(options).save();
+            
+            html2pdf().from(printArea).set(options).save().then(() => {
+                printArea.style.display = 'none';
+            });
         }
 
         // ============================================
@@ -3369,25 +3388,11 @@
             }
         }
 
-        function uploadWelcomeImage(inputObj) {
-            if (inputObj.files && inputObj.files[0]) {
-                const reader = new FileReader();
-                reader.onload = async function(e) {
-                    appState.settings.welcomeImage = e.target.result;
-                    await saveAllData();
-                    applyBrandingStyles();
-                    alertCustom("✅ تم تغيير صورة الخلفية");
-                };
-                reader.readAsDataURL(inputObj.files[0]);
-            }
-        }
-
-        async function resetBranding() {
+        async function resetLogo() {
             appState.settings.logoImage = null;
-            appState.settings.welcomeImage = null;
             await saveAllData();
             applyBrandingStyles();
-            alertCustom("تم إعادة تعيين الصور الافتراضية");
+            alertCustom("تم إزالة الشعار واستخدام الأيقونة");
         }
 
         // ============================================
@@ -3467,7 +3472,7 @@
         }
 
         // ============================================
-        // بدء التشغيل - التحقق الفوري
+        // بدء التشغيل - استعادة الجلسة فوراً
         // ============================================
         window.onload = async function() {
             await loadAllData();
@@ -3481,10 +3486,15 @@
             console.log("📋 المستخدمين المسجلين:");
             console.table(appState.settings.users);
 
-            // التحقق الفوري من الجلسة
-            const hasSession = checkSessionAndShowDashboard();
+            // محاولة استعادة الجلسة فوراً
+            const hasSession = restoreSession();
             
-            if (!hasSession) {
+            if (hasSession) {
+                // إخفاء شاشة الدخول فوراً
+                document.getElementById('login-screen').classList.add('login-hidden');
+                document.getElementById('login-screen').classList.add('hidden');
+                showDashboard();
+            } else {
                 showLogin();
             }
         };
