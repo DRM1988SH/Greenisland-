@@ -134,7 +134,6 @@
         .screen-content { display: none; }
         .screen-content.active { display: block; }
 
-        /* إخفاء شاشة الدخول فوراً */
         .login-hidden { display: none !important; }
         
         .logo-icon {
@@ -170,20 +169,75 @@
             font-size: 32px;
         }
 
-        /* إخفاء كل شيء أثناء تحميل الصفحة */
-        #app-loader {
-            display: none;
+        /* تنسيق التقارير */
+        #print-area {
+            font-family: 'Cairo', 'Arial', sans-serif;
         }
-
-        /* منع ظهور شاشة الدخول أثناء التحميل */
-        #login-screen.hidden {
-            display: none !important;
+        #print-area .report-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #065f46;
+            background: #f0fdf4;
+            border: 2px solid #065f46;
+            padding: 8px 30px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+        #print-area .report-body {
+            font-size: 14px;
+            line-height: 2;
+            text-align: justify;
+            padding: 0 10px;
+        }
+        #print-area .report-body p {
+            margin-bottom: 10px;
+        }
+        #print-area .report-footer {
+            margin-top: auto;
+            border-top: 2px solid #065f46;
+            padding-top: 10px;
+        }
+        #print-area .approval-section {
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            padding: 5px 0;
+            border-top: 1px solid #e5e7eb;
+        }
+        #print-area .approval-section div {
+            flex: 1;
+        }
+        #print-area .approval-section .label {
+            font-size: 11px;
+            font-weight: bold;
+            color: #9ca3af;
+        }
+        #print-area .approval-section .sign {
+            font-size: 12px;
+            color: #d1d5db;
+            font-style: italic;
+            margin-top: 5px;
+        }
+        #print-area .footer-text {
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: #065f46;
+            padding: 8px 0;
+            border-top: 2px solid #065f46;
+        }
+        #print-area .company-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: #6b7280;
+            padding-top: 10px;
         }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen overflow-x-hidden">
 
-    <!-- شاشة تسجيل الدخول - مخفية تماماً حتى يتم تسجيل الدخول -->
+    <!-- شاشة تسجيل الدخول -->
     <div id="login-screen" class="hidden flex-grow flex items-center justify-center min-h-screen bg-cover bg-center" style="background-image: linear-gradient(rgba(16, 185, 129, 0.1), rgba(4, 120, 87, 0.3)), url('https://images.unsplash.com/photo-1500595046743-cd271d694d30?auto=format&fit=crop&q=80&w=1200');">
         <div class="bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl w-full max-w-md mx-4 border-0">
             <div class="text-center mb-8">
@@ -723,9 +777,9 @@
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-500/10">
                             <h3 class="text-base md:text-lg font-bold text-gray-800 mb-4 border-b pb-2">
                                 <i class="fa-solid fa-certificate text-emerald-600 ml-2"></i>
-                                شهادة راتب (PDF حقيقي)
+                                شهادة (راتب / خبرة / توصية)
                             </h3>
-                            <p class="text-xs text-gray-500 mb-4">شهادة راتب رسمية تحتوي على جميع بيانات الموظف وليس الراتب فقط</p>
+                            <p class="text-xs text-gray-500 mb-4">شهادة رسمية تحتوي على جميع بيانات الموظف</p>
                             <div class="space-y-3">
                                 <div>
                                     <label class="block text-xs font-semibold text-gray-500 mb-1">اختر الموظف</label>
@@ -741,7 +795,7 @@
                                         <option value="توصية">شهادة توصية</option>
                                     </select>
                                 </div>
-                                <button onclick="generateSalaryCertificate()" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2">
+                                <button onclick="generateCertificate()" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-file-pdf"></i> إنشاء الشهادة PDF
                                 </button>
                             </div>
@@ -1113,7 +1167,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-500/10 space-y-4">
                             <h3 class="text-base md:text-lg font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-image text-emerald-600 ml-2"></i>شعار النظام</h3>
-                            <p class="text-xs text-gray-500">ارفع صورة واحدة لتظهر في جميع أنحاء النظام (الشعار، شاشة الدخول، التقارير)</p>
+                            <p class="text-xs text-gray-500">ارفع صورة واحدة لتظهر في جميع أنحاء النظام</p>
                             <div>
                                 <label class="block text-xs font-semibold text-gray-500 mb-1">تحميل شعار النظام</label>
                                 <input type="file" id="logo-uploader" accept="image/*" onchange="uploadLogo(this)" class="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer">
@@ -1127,7 +1181,7 @@
                                 </div>
                                 <span class="text-xs text-gray-500">معاينة الشعار</span>
                             </div>
-                            <button onclick="resetLogo()" class="text-xs text-rose-600 hover:underline">إزالة الشعار واستخدام الأيقونة</button>
+                            <button onclick="resetLogo()" class="text-xs text-rose-600 hover:underline">إزالة الشعار</button>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-emerald-500/10 space-y-4">
                             <h3 class="text-base md:text-lg font-bold text-gray-800 border-b pb-2"><i class="fa-solid fa-map-location-dot text-emerald-600 ml-2"></i>إدارة المسالخ</h3>
@@ -1221,8 +1275,9 @@
     </div>
 
     <!-- قالب الطباعة للتقارير -->
-    <div id="print-area" class="hidden p-12 bg-white text-gray-900 border-[16px] border-emerald-800 rounded-lg max-w-4xl mx-auto shadow-2xl relative min-h-[1000px] flex flex-col justify-between">
-        <div class="flex justify-between items-center border-b-4 border-emerald-700 pb-6 mb-8">
+    <div id="print-area" class="hidden p-12 bg-white text-gray-900 border-[16px] border-emerald-800 rounded-lg max-w-4xl mx-auto shadow-2xl relative min-h-[1000px] flex flex-col">
+        <!-- الهيدر -->
+        <div class="flex justify-between items-center border-b-4 border-emerald-700 pb-4 mb-6">
             <div>
                 <h1 class="text-2xl font-bold text-emerald-800">شركة الجزيرة الخضراء لتجارة المواشي والاغنام</h1>
                 <p class="text-xs text-gray-500 font-semibold mt-1">Green Island Livestock and Sheep Market</p>
@@ -1237,32 +1292,39 @@
             </div>
         </div>
 
-        <div id="cert-dynamic-content" class="flex-grow space-y-8 my-auto"></div>
+        <!-- المحتوى الديناميكي -->
+        <div id="cert-dynamic-content" class="flex-grow"></div>
 
-        <div class="mt-8">
-            <div class="text-center text-sm font-bold text-emerald-700 border-t-2 border-emerald-600 pt-3 mb-4">
+        <!-- الفوتر - الاعتمادات والفوتر -->
+        <div class="mt-auto">
+            <!-- الاعتمادات -->
+            <div id="approval-section" class="border-t border-gray-300 pt-3 mb-0">
+                <div class="grid grid-cols-2 gap-8 text-center">
+                    <div>
+                        <p class="text-xs font-bold text-gray-500">المدير الإداري</p>
+                        <div class="mt-1 h-8 flex items-center justify-center">
+                            <span class="text-xs text-gray-400 italic">[توقيع]</span>
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-gray-500">المدير العام</p>
+                        <div class="mt-1 h-8 flex items-center justify-center">
+                            <span class="text-xs text-emerald-600/40 font-bold border-2 border-emerald-600/30 p-1 rounded">معتمد</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- فوتر الورقة -->
+            <div class="footer-text">
                 هذه الشهادة معتمدة الكترونياً ولا تحتاج إلى توقيع
             </div>
-            <div class="grid grid-cols-2 gap-8 text-center mt-4 border-t border-gray-100 pt-6">
-                <div>
-                    <p class="text-xs font-bold text-gray-400 mb-1">المدير الإداري</p>
-                    <div class="mt-2 h-10 flex items-center justify-center">
-                        <span class="text-xs text-gray-300 italic">[توقيع]</span>
-                    </div>
-                </div>
-                <div>
-                    <p class="text-xs font-bold text-gray-400 mb-1">المدير العام</p>
-                    <div class="mt-2 h-10 flex items-center justify-center">
-                        <span class="text-xs text-emerald-600/30 font-bold rotate-12 select-none border-2 border-emerald-600/30 p-1 rounded">معتمد</span>
-                    </div>
-                </div>
-            </div>
-            <div class="mt-6 pt-4 border-t-2 border-emerald-800 flex justify-between items-center text-[11px] text-gray-500">
+            <div class="company-footer">
                 <div>
                     <p class="font-bold text-emerald-800">شركة الجزيرة الخضراء</p>
                     <p>دولة الإمارات العربية المتحدة</p>
                 </div>
-                <div class="text-left font-semibold">
+                <div class="text-left">
                     <p>info@grisland.com</p>
                     <p>www.grisland.com</p>
                 </div>
@@ -1415,7 +1477,6 @@
                 await saveAllData();
                 appState.isLoading = false;
                 
-                // تحديث الجداول بعد تحميل البيانات
                 if (appState.currentActiveUser) {
                     renderEmployeesTable();
                     renderLeavesTable();
@@ -1476,12 +1537,11 @@
         }
 
         // ============================================
-        // دوال الصور - صورة واحدة لكل التطبيق
+        // دوال الصور
         // ============================================
         function updateLogoDisplay() {
             const logo = appState.settings.logoImage;
             
-            // شاشة الدخول
             const loginLogo = document.getElementById('login-logo');
             const loginIcon = document.getElementById('login-logo-icon');
             if (logo) {
@@ -1493,7 +1553,6 @@
                 loginIcon.classList.remove('hidden');
             }
 
-            // الهيدر
             const headerLogo = document.getElementById('header-logo');
             const headerIcon = document.getElementById('header-logo-icon');
             if (logo) {
@@ -1505,7 +1564,6 @@
                 headerIcon.classList.remove('hidden');
             }
 
-            // شهادة
             const certLogo = document.getElementById('cert-logo');
             const certIcon = document.getElementById('cert-logo-icon');
             if (logo) {
@@ -1517,7 +1575,6 @@
                 certIcon.classList.remove('hidden');
             }
 
-            // الإعدادات - معاينة
             const settingsLogo = document.getElementById('settings-logo-preview');
             const settingsIcon = document.getElementById('settings-logo-icon');
             if (logo) {
@@ -1732,7 +1789,7 @@
         setInterval(updateLiveDateTime, 1000);
 
         // ============================================
-        // استعادة الجلسة فوراً - بدون تأخير
+        // استعادة الجلسة فوراً
         // ============================================
         function restoreSession() {
             const savedUser = localStorage.getItem('gilm_user');
@@ -1797,7 +1854,6 @@
             const lastScreen = appState.currentScreen || 'emp-manage';
             switchScreen(lastScreen);
             
-            // عرض الجداول فوراً - سيتم تحديثها بعد تحميل البيانات
             renderEmployeesTable();
             renderLeavesTable();
             renderAttendanceTable();
@@ -1810,7 +1866,6 @@
             
             appState.isInitialized = true;
             
-            // تحميل البيانات في الخلفية
             if (!appState.isLoading) {
                 loadAllData();
             }
@@ -1849,7 +1904,7 @@
         }
 
         // ============================================
-        // حفظ الحالة عند التحديث - فوري
+        // حفظ الحالة عند التحديث
         // ============================================
         window.addEventListener('beforeunload', function(e) {
             if (appState.currentActiveUser) {
@@ -2355,16 +2410,16 @@
             });
 
             const content = `
-                <div class="text-center">
-                    <span class="px-6 py-2 bg-emerald-50 border-2 border-emerald-800 text-emerald-900 text-lg font-bold rounded-full shadow-sm tracking-wide">تقرير الحضور والانصراف وكشف الرواتب</span>
+                <div class="text-center mb-6">
+                    <span class="report-title">تقرير الحضور والانصراف وكشف الرواتب</span>
                 </div>
-                <div class="mt-4 text-xs text-gray-500 text-center">
+                <div class="text-xs text-gray-500 text-center mb-4">
                     ${mainSlaughterhouse ? `المسلخ الرئيسي: ${mainSlaughterhouse}` : 'جميع المسالخ'} 
                     ${subSlaughterhouse ? ` | الفرعي: ${subSlaughterhouse}` : ''}
                     ${dateFrom ? ` | من: ${dateFrom}` : ''}
                     ${dateTo ? ` | إلى: ${dateTo}` : ''}
                 </div>
-                <div class="mt-6 overflow-x-auto">
+                <div class="overflow-x-auto mb-4">
                     <table class="w-full border-collapse border border-emerald-600 text-sm text-right">
                         <thead>
                             <tr class="bg-emerald-50">
@@ -2389,7 +2444,7 @@
                         </tfoot>
                     </table>
                 </div>
-                <div class="mt-4 text-xs text-gray-500 text-center">
+                <div class="text-xs text-gray-500 text-center">
                     عدد الموظفين: ${filteredEmployees.length} | تاريخ التقرير: ${new Date().toLocaleDateString('ar-EG')}
                 </div>
             `;
@@ -2413,9 +2468,9 @@
         }
 
         // ============================================
-        // شهادة راتب موظف (PDF حقيقي)
+        // شهادة (راتب / خبرة / توصية)
         // ============================================
-        function generateSalaryCertificate() {
+        function generateCertificate() {
             const empId = document.getElementById('cert-emp-id').value;
             const certType = document.getElementById('cert-type').value;
 
@@ -2449,62 +2504,39 @@
             let certText = '';
             let certTitle = '';
 
+            // نص الشهادة كامل بدون قوائم
             if (certType === 'راتب') {
                 certTitle = 'شهادة راتب';
                 certText = `
-                    <p>تشهد شركة الجزيرة الخضراء لتجارة الأغنام والمواشي بأن الموظف <strong>${emp.name}</strong> يعمل لديها بوظيفة <strong>${emp.job}</strong>.</p>
-                    <p>البيانات الشخصية:</p>
-                    <ul style="list-style:none; padding-right:20px; margin:10px 0;">
-                        <li>• الرقم الوظيفي: <strong>${emp.empId}</strong></li>
-                        <li>• الجنسية: <strong>${emp.nationality}</strong></li>
-                        <li>• رقم الجواز: <strong>${emp.passport}</strong></li>
-                        <li>• رقم الهوية: <strong>${emp.nid}</strong></li>
-                        <li>• تاريخ التعيين: <strong>${hireDate}</strong></li>
-                    </ul>
-                    <p>الراتب الأساسي الشهري: <strong>${salary.toLocaleString()} درهم</strong></p>
-                    <p>عدد أيام الحضور لهذا الشهر: <strong>${attendanceCount} يوم</strong></p>
-                    <p style="margin-top:15px;">وتمنح هذه الشهادة بناءً على طلب الموظف لتكون سنداً له لدى الجهات المعنية.</p>
+                    <p>تشهد شركة الجزيرة الخضراء لتجارة الأغنام والمواشي بأن الموظف <strong>${emp.name}</strong> الذي يحمل الجنسية <strong>${emp.nationality}</strong> ورقم الجواز <strong>${emp.passport}</strong> ورقم الهوية <strong>${emp.nid}</strong> يعمل لديها بوظيفة <strong>${emp.job}</strong> برقم وظيفي <strong>${emp.empId}</strong> منذ تاريخ <strong>${hireDate}</strong>.</p>
+                    <p>يبلغ الراتب الأساسي الشهري للموظف مبلغ <strong>${salary.toLocaleString()} درهم</strong>، وعدد أيام حضوره لهذا الشهر <strong>${attendanceCount} يوم</strong>.</p>
+                    <p>وتمنح هذه الشهادة بناءً على طلب الموظف لتكون سنداً له لدى الجهات المعنية، وتخلو الشركة من أي مسؤولية تجاه الغير فيما يخص هذه الشهادة.</p>
                 `;
             } else if (certType === 'خبرة') {
                 certTitle = 'شهادة خبرة';
                 certText = `
-                    <p>تشهد شركة الجزيرة الخضراء لتجارة الأغنام والمواشي بأن الموظف <strong>${emp.name}</strong> يعمل لديها بوظيفة <strong>${emp.job}</strong> منذ تاريخ <strong>${hireDate}</strong> وحتى تاريخه.</p>
-                    <p>البيانات الشخصية:</p>
-                    <ul style="list-style:none; padding-right:20px; margin:10px 0;">
-                        <li>• الرقم الوظيفي: <strong>${emp.empId}</strong></li>
-                        <li>• الجنسية: <strong>${emp.nationality}</strong></li>
-                        <li>• رقم الجواز: <strong>${emp.passport}</strong></li>
-                        <li>• رقم الهوية: <strong>${emp.nid}</strong></li>
-                    </ul>
-                    <p>وقد أبدى الموظف خلال فترة عمله التفاني والإخلاص في أداء مهامه.</p>
-                    <p style="margin-top:15px;">وتمنح هذه الشهادة بناءً على طلب الموظف لتكون سنداً له لدى الجهات المعنية.</p>
+                    <p>تشهد شركة الجزيرة الخضراء لتجارة الأغنام والمواشي بأن الموظف <strong>${emp.name}</strong> الذي يحمل الجنسية <strong>${emp.nationality}</strong> ورقم الجواز <strong>${emp.passport}</strong> ورقم الهوية <strong>${emp.nid}</strong> يعمل لديها بوظيفة <strong>${emp.job}</strong> برقم وظيفي <strong>${emp.empId}</strong> منذ تاريخ <strong>${hireDate}</strong> وحتى تاريخه.</p>
+                    <p>وقد أبدى الموظف خلال فترة عمله تفانياً وإخلاصاً في أداء مهامه، وتمتع بالكفاءة والالتزام.</p>
+                    <p>وتمنح هذه الشهادة بناءً على طلب الموظف لتكون سنداً له لدى الجهات المعنية، وتخلو الشركة من أي مسؤولية تجاه الغير فيما يخص هذه الشهادة.</p>
                 `;
             } else {
                 certTitle = 'شهادة توصية';
                 certText = `
-                    <p>تشهد شركة الجزيرة الخضراء لتجارة الأغنام والمواشي بأن الموظف <strong>${emp.name}</strong> يعمل لديها بوظيفة <strong>${emp.job}</strong> منذ تاريخ <strong>${hireDate}</strong>.</p>
-                    <p>البيانات الشخصية:</p>
-                    <ul style="list-style:none; padding-right:20px; margin:10px 0;">
-                        <li>• الرقم الوظيفي: <strong>${emp.empId}</strong></li>
-                        <li>• الجنسية: <strong>${emp.nationality}</strong></li>
-                        <li>• رقم الجواز: <strong>${emp.passport}</strong></li>
-                    </ul>
-                    <p>نوصي بهذا الموظف لما أظهره من كفاءة عالية وأمانة وإخلاص في العمل.</p>
-                    <p style="margin-top:15px;">وتمنح هذه الشهادة بناءً على طلب الموظف لتكون سنداً له لدى الجهات المعنية.</p>
+                    <p>تشهد شركة الجزيرة الخضراء لتجارة الأغنام والمواشي بأن الموظف <strong>${emp.name}</strong> الذي يحمل الجنسية <strong>${emp.nationality}</strong> ورقم الجواز <strong>${emp.passport}</strong> يعمل لديها بوظيفة <strong>${emp.job}</strong> برقم وظيفي <strong>${emp.empId}</strong> منذ تاريخ <strong>${hireDate}</strong>.</p>
+                    <p>نوصي بهذا الموظف لما أظهره من كفاءة عالية وأمانة وإخلاص في العمل، وكان نموذجاً يحتذى به في الانضباط والالتزام.</p>
+                    <p>وتمنح هذه الشهادة بناءً على طلب الموظف لتكون سنداً له لدى الجهات المعنية، وتخلو الشركة من أي مسؤولية تجاه الغير فيما يخص هذه الشهادة.</p>
                 `;
             }
 
             const content = `
-                <div class="text-center">
-                    <span class="px-6 py-2 bg-emerald-50 border-2 border-emerald-800 text-emerald-900 text-lg font-bold rounded-full shadow-sm tracking-wide">${certTitle}</span>
+                <div class="text-center mb-6">
+                    <span class="report-title">${certTitle}</span>
                 </div>
-                <div class="mt-8 text-justify leading-loose text-base text-gray-800 px-4" style="line-height:2.2; font-size:15px;">
+                <div class="report-body">
                     ${certText}
                 </div>
-                <div class="mt-6 border-t border-gray-200 pt-4 text-sm text-gray-600" style="line-height:1.8;">
+                <div class="text-sm text-gray-600 mt-4" style="line-height:1.8;">
                     <p><strong>تاريخ الإصدار:</strong> ${today}</p>
-                    <p><strong>الموظف:</strong> ${emp.name}</p>
-                    <p><strong>الرقم الوظيفي:</strong> ${emp.empId}</p>
                 </div>
             `;
 
@@ -2711,15 +2743,14 @@
         function exportLeavePDF(id) {
             const l = appState.leaves.find(leave => leave.id === id);
             if (!l) return;
-            const emp = appState.employees.find(e => e.empId === l.empId) || { name: 'غير معروف', job: 'غير محدد',
-                salary: 0 };
+            const emp = appState.employees.find(e => e.empId === l.empId) || { name: 'غير معروف', job: 'غير محدد' };
             const sub = appState.employees.find(e => e.empId === l.substituteId) || { name: 'غير معروف' };
 
             const content = `
-                <div class="text-center">
-                    <span class="px-6 py-2 bg-emerald-50 border-2 border-emerald-800 text-emerald-900 text-lg font-bold rounded-full shadow-sm tracking-wide">طلب إجازة</span>
+                <div class="text-center mb-6">
+                    <span class="report-title">طلب إجازة</span>
                 </div>
-                <div class="mt-8 overflow-x-auto">
+                <div class="overflow-x-auto mb-4">
                     <table class="w-full border-collapse border border-emerald-600 text-sm text-right">
                         <tbody>
                             <tr><td class="border p-3 font-bold bg-emerald-50 w-1/3">الموظف</td><td class="border p-3">${emp.name}</td></tr>
@@ -2734,16 +2765,6 @@
                             <tr><td class="border p-3 font-bold bg-emerald-50">رقم مستلم المهام</td><td class="border p-3">${l.handoverRef}</td></tr>
                         </tbody>
                     </table>
-                </div>
-                <div class="mt-8 grid grid-cols-2 gap-4 text-center">
-                    <div class="border-t-2 border-emerald-700 pt-3">
-                        <p class="text-xs font-bold text-gray-500">اعتماد الإداري</p>
-                        <p class="text-sm font-bold text-emerald-700 mt-2">${l.managerApprove ? '✅ معتمد' : '⏳ قيد المراجعة'}</p>
-                    </div>
-                    <div class="border-t-2 border-emerald-700 pt-3">
-                        <p class="text-xs font-bold text-gray-500">اعتماد المدير العام</p>
-                        <p class="text-sm font-bold text-emerald-700 mt-2">${l.gmApprove ? '✅ معتمد' : '⏳ قيد المراجعة'}</p>
-                    </div>
                 </div>
             `;
 
@@ -3349,10 +3370,10 @@
             });
 
             const content = `
-                <div class="text-center">
-                    <span class="px-6 py-2 bg-emerald-50 border-2 border-emerald-800 text-emerald-900 text-lg font-bold rounded-full shadow-sm tracking-wide">تقرير طلبات المواد</span>
+                <div class="text-center mb-6">
+                    <span class="report-title">تقرير طلبات المواد</span>
                 </div>
-                <div class="mt-8 overflow-x-auto">
+                <div class="overflow-x-auto mb-4">
                     <table class="w-full border-collapse border border-emerald-600 text-sm text-right">
                         <thead>
                             <tr class="bg-emerald-50">
@@ -3370,7 +3391,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-4 text-xs text-gray-500 text-center">
+                <div class="text-xs text-gray-500 text-center">
                     عدد الطلبات: ${filtered.length}
                 </div>
             `;
@@ -3394,7 +3415,7 @@
         }
 
         // ============================================
-        // دوال الإعدادات - الصور
+        // دوال الإعدادات
         // ============================================
         function uploadLogo(inputObj) {
             if (inputObj.files && inputObj.files[0]) {
@@ -3413,12 +3434,9 @@
             appState.settings.logoImage = null;
             await saveAllData();
             applyBrandingStyles();
-            alertCustom("تم إزالة الشعار واستخدام الأيقونة");
+            alertCustom("تم إزالة الشعار");
         }
 
-        // ============================================
-        // دوال الإعدادات - المستخدمين
-        // ============================================
         async function createNewUser(e) {
             e.preventDefault();
             if (!isAdmin()) {
@@ -3503,7 +3521,7 @@
             // تهيئة المستخدمين الافتراضيين أولاً
             appState.settings.users = DEFAULT_USERS.map(u => ({ ...u }));
             
-            // محاولة استعادة الجلسة فوراً
+            // محاولة استعادة الجلسة فوراً - بدون أي تأخير
             if (savedUser) {
                 try {
                     const user = JSON.parse(savedUser);
