@@ -2509,7 +2509,7 @@
                 certTitle = 'شهادة راتب';
                 certText = `
                     <p>تشهد شركة الجزيرة الخضراء لتجارة الأغنام والمواشي بأن الموظف <strong>${emp.name}</strong> الذي يحمل الجنسية <strong>${emp.nationality}</strong> ورقم الجواز <strong>${emp.passport}</strong> ورقم الهوية <strong>${emp.nid}</strong> يعمل لديها بوظيفة <strong>${emp.job}</strong> برقم وظيفي <strong>${emp.empId}</strong> منذ تاريخ <strong>${hireDate}</strong>.</p>
-                    <p>يبلغ الراتب الأساسي الشهري للموظف مبلغ <strong>${salary.toLocaleString()} درهم</strong>، .</p>
+                    <p>يبلغ الراتب الأساسي الشهري للموظف مبلغ <strong>${salary.toLocaleString()} درهم</strong>.</p>
                     <p>وتمنح هذه الشهادة بناءً على طلب الموظف لتكون سنداً له لدى الجهات المعنية، وتخلو الشركة من أي مسؤولية تجاه الغير فيما يخص هذه الشهادة.</p>
                 `;
             } else if (certType === 'خبرة') {
@@ -3584,7 +3584,7 @@
             }
             
             // إذا لم توجد جلسة، عرض شاشة الدخول
-            hideLogin();
+            showLogin();
             
             // تحميل البيانات في الخلفية
             loadAllData();
