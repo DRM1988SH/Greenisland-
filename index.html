@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -138,7 +137,6 @@
         /* إخفاء شاشة الدخول فوراً */
         .login-hidden { display: none !important; }
         
-        /* تنسيق الصورة المؤقتة - أيقونة فقط */
         .logo-icon {
             display: flex;
             align-items: center;
@@ -172,9 +170,14 @@
             font-size: 32px;
         }
 
-        /* منع ظهور شاشة الدخول أثناء التحميل */
+        /* إخفاء كل شيء أثناء تحميل الصفحة */
         #app-loader {
             display: none;
+        }
+
+        /* منع ظهور شاشة الدخول أثناء التحميل */
+        #login-screen.hidden {
+            display: none !important;
         }
     </style>
 </head>
@@ -1309,7 +1312,8 @@
             },
             currentActiveUser: null,
             currentScreen: 'emp-manage',
-            isInitialized: false
+            isInitialized: false,
+            isLoading: true
         };
 
         let isSidebarOpen = true;
@@ -1368,7 +1372,7 @@
         }
 
         // ============================================
-        // تحميل جميع البيانات
+        // تحميل جميع البيانات - في الخلفية
         // ============================================
         async function loadAllData() {
             try {
@@ -1409,8 +1413,22 @@
                 }
 
                 await saveAllData();
+                appState.isLoading = false;
+                
+                // تحديث الجداول بعد تحميل البيانات
+                if (appState.currentActiveUser) {
+                    renderEmployeesTable();
+                    renderLeavesTable();
+                    renderAttendanceTable();
+                    renderMaintenanceTable();
+                    renderInventoryTable();
+                    renderPurchasesTable();
+                    renderRequestsTable();
+                    renderSystemUsersTable();
+                }
             } catch (e) {
                 console.error("Error loading data:", e);
+                appState.isLoading = false;
             }
         }
 
@@ -1589,7 +1607,7 @@
         }
 
         // ============================================
-        // دوال الواجهة الأساسية
+        // دوال الواجهة الأساسية - فورية
         // ============================================
         function toggleSidebar() {
             isSidebarOpen = !isSidebarOpen;
@@ -1666,7 +1684,6 @@
             toggleInputVisibility();
             populateReportDropdowns();
             
-            // حفظ الشاشة في localStorage
             if (appState.currentActiveUser) {
                 localStorage.setItem('gilm_screen', screenId);
             }
@@ -1715,7 +1732,7 @@
         setInterval(updateLiveDateTime, 1000);
 
         // ============================================
-        // التحقق من الجلسة - استعادة الشاشة الحالية
+        // استعادة الجلسة فوراً - بدون تأخير
         // ============================================
         function restoreSession() {
             const savedUser = localStorage.getItem('gilm_user');
@@ -1780,6 +1797,7 @@
             const lastScreen = appState.currentScreen || 'emp-manage';
             switchScreen(lastScreen);
             
+            // عرض الجداول فوراً - سيتم تحديثها بعد تحميل البيانات
             renderEmployeesTable();
             renderLeavesTable();
             renderAttendanceTable();
@@ -1791,6 +1809,11 @@
             toggleInputVisibility();
             
             appState.isInitialized = true;
+            
+            // تحميل البيانات في الخلفية
+            if (!appState.isLoading) {
+                loadAllData();
+            }
         }
 
         function logout() {
@@ -1826,7 +1849,7 @@
         }
 
         // ============================================
-        // حفظ الحالة عند التحديث
+        // حفظ الحالة عند التحديث - فوري
         // ============================================
         window.addEventListener('beforeunload', function(e) {
             if (appState.currentActiveUser) {
@@ -2373,7 +2396,6 @@
 
             document.getElementById('cert-dynamic-content').innerHTML = content;
 
-            // إظهار عنصر الطباعة مؤقتاً
             const printArea = document.getElementById('print-area');
             printArea.style.display = 'block';
 
@@ -2488,7 +2510,6 @@
 
             document.getElementById('cert-dynamic-content').innerHTML = content;
 
-            // إظهار عنصر الطباعة مؤقتاً
             const printArea = document.getElementById('print-area');
             printArea.style.display = 'block';
 
@@ -3472,31 +3493,83 @@
         }
 
         // ============================================
-        // بدء التشغيل - استعادة الجلسة فوراً
+        // بدء التشغيل - فوري جداً
         // ============================================
-        window.onload = async function() {
-            await loadAllData();
-            updateLiveDateTime();
-            populateNationalities();
-            generateNextEmpId();
-
-            isSidebarOpen = window.innerWidth >= 768;
-            applySidebarClasses();
-
-            console.log("📋 المستخدمين المسجلين:");
-            console.table(appState.settings.users);
-
-            // محاولة استعادة الجلسة فوراً
-            const hasSession = restoreSession();
+        window.onload = function() {
+            // جلب البيانات من localStorage فوراً
+            const savedUser = localStorage.getItem('gilm_user');
+            const savedScreen = localStorage.getItem('gilm_screen');
             
-            if (hasSession) {
-                // إخفاء شاشة الدخول فوراً
-                document.getElementById('login-screen').classList.add('login-hidden');
-                document.getElementById('login-screen').classList.add('hidden');
-                showDashboard();
-            } else {
-                showLogin();
+            // تهيئة المستخدمين الافتراضيين أولاً
+            appState.settings.users = DEFAULT_USERS.map(u => ({ ...u }));
+            
+            // محاولة استعادة الجلسة فوراً
+            if (savedUser) {
+                try {
+                    const user = JSON.parse(savedUser);
+                    const validUser = appState.settings.users.find(u => u.empId === user.empId && u.code === user.code);
+                    if (validUser) {
+                        appState.currentActiveUser = validUser;
+                        appState.currentScreen = savedScreen || 'emp-manage';
+                        
+                        // إخفاء شاشة الدخول وعرض الواجهة فوراً
+                        document.getElementById('login-screen').classList.add('login-hidden');
+                        document.getElementById('login-screen').classList.add('hidden');
+                        document.getElementById('main-app').classList.remove('hidden');
+                        
+                        // تحديث الواجهة فوراً
+                        updateLiveDateTime();
+                        populateNationalities();
+                        generateNextEmpId();
+                        applyBrandingStyles();
+                        
+                        document.getElementById('user-display-info').innerText =
+                            `المستخدم: ${appState.currentActiveUser.name} | الرقم: ${appState.currentActiveUser.empId}`;
+                        document.getElementById('sidebar-username').innerText = appState.currentActiveUser.name;
+                        document.getElementById('sidebar-role').innerText = appState.currentActiveUser.role;
+                        
+                        updateSlaughterhouseDropdowns();
+                        renderSlaughterhousesTree();
+                        populateEmployeesDropdowns();
+                        populateReportDropdowns();
+                        
+                        switchScreen(appState.currentScreen);
+                        renderEmployeesTable();
+                        renderLeavesTable();
+                        renderAttendanceTable();
+                        renderMaintenanceTable();
+                        renderInventoryTable();
+                        renderPurchasesTable();
+                        renderRequestsTable();
+                        renderSystemUsersTable();
+                        toggleInputVisibility();
+                        
+                        appState.isInitialized = true;
+                        
+                        // تحميل البيانات من Firebase في الخلفية
+                        loadAllData().then(() => {
+                            renderEmployeesTable();
+                            renderLeavesTable();
+                            renderAttendanceTable();
+                            renderMaintenanceTable();
+                            renderInventoryTable();
+                            renderPurchasesTable();
+                            renderRequestsTable();
+                            renderSystemUsersTable();
+                        });
+                        
+                        return;
+                    }
+                } catch (e) {
+                    console.error('Error restoring session:', e);
+                }
             }
+            
+            // إذا لم توجد جلسة، عرض شاشة الدخول
+            showLogin();
+            
+            // تحميل البيانات في الخلفية
+            loadAllData();
         };
 
         console.log("✅ النظام جاهز مع المستخدمين:");
@@ -3505,4 +3578,3 @@
 
 </body>
 </html>
-```
