@@ -169,7 +169,6 @@
             font-size: 32px;
         }
 
-        /* تنسيق التقارير */
         #print-area {
             font-family: 'Cairo', 'Arial', sans-serif;
         }
@@ -1352,18 +1351,34 @@
         ];
 
         // ============================================
-        // حالة التطبيق
+        // حالة التطبيق - تحميل من localStorage فوراً
         // ============================================
+        function loadAppStateFromLocalStorage() {
+            try {
+                const saved = localStorage.getItem('gilm_app_state');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    return parsed;
+                }
+            } catch (e) {
+                console.error('Error loading state:', e);
+            }
+            return null;
+        }
+
+        // تحميل الحالة المحفوظة فوراً
+        let savedState = loadAppStateFromLocalStorage();
+
         let appState = {
-            employees: [],
-            leaves: [],
-            attendance: [],
-            maintenance: [],
-            inventory: [],
-            purchases: [],
-            requests: [],
-            notifications: [],
-            settings: {
+            employees: savedState?.employees || [],
+            leaves: savedState?.leaves || [],
+            attendance: savedState?.attendance || [],
+            maintenance: savedState?.maintenance || [],
+            inventory: savedState?.inventory || [],
+            purchases: savedState?.purchases || [],
+            requests: savedState?.requests || [],
+            notifications: savedState?.notifications || [],
+            settings: savedState?.settings || {
                 users: [],
                 slaughterhouses: {
                     "مسالخ منطقة الظفرة": ["مسلخ مدينة غياثي", "مسلخ مدينة السلع"],
@@ -1372,151 +1387,276 @@
                 },
                 logoImage: null
             },
-            currentActiveUser: null,
-            currentScreen: 'emp-manage',
+            currentActiveUser: savedState?.currentActiveUser || null,
+            currentScreen: savedState?.currentScreen || 'emp-manage',
             isInitialized: false,
             isLoading: true
         };
 
-        let isSidebarOpen = true;
-
-        // ============================================
-        // دوال Firebase
-        // ============================================
-        async function saveCollectionToFirestore(collectionName, dataArray) {
-            if (!window.db) return;
-            try {
-                const collectionRef = window.collection(window.db, collectionName);
-                const snapshot = await window.getDocs(collectionRef);
-                for (const docSnap of snapshot.docs) {
-                    await window.deleteDoc(window.doc(window.db, collectionName, docSnap.id));
-                }
-                for (const item of dataArray) {
-                    const docId = item.id ? item.id.toString() : `${collectionName}_${Date.now()}_${Math.random()}`;
-                    await window.setDoc(window.doc(window.db, collectionName, docId), { ...item, _id: docId });
-                }
-            } catch (e) { console.error("Error saving:", e); }
-        }
-
-        async function loadCollectionFromFirestore(collectionName) {
-            if (!window.db) return [];
-            try {
-                const collectionRef = window.collection(window.db, collectionName);
-                const snapshot = await window.getDocs(collectionRef);
-                return snapshot.docs.map(doc => ({ ...doc.data(), id: doc.data()._id || parseInt(doc.id) || doc.id }));
-            } catch (e) { console.error("Error loading:", e); return []; }
-        }
-
-        // ============================================
-        // تهيئة المستخدمين الافتراضيين
-        // ============================================
-        function initializeDefaultUsers() {
+        // التأكد من وجود المستخدمين الافتراضيين
+        function ensureDefaultUsers() {
             const existingIds = appState.settings.users.map(u => u.empId);
             let addedCount = 0;
-
             DEFAULT_USERS.forEach(defaultUser => {
                 if (!existingIds.includes(defaultUser.empId)) {
                     appState.settings.users.push({ ...defaultUser });
                     addedCount++;
                 }
             });
-
             if (appState.settings.users.length === 0) {
                 appState.settings.users = DEFAULT_USERS.map(u => ({ ...u }));
                 addedCount = DEFAULT_USERS.length;
             }
-
-            if (addedCount > 0) {
-                console.log(`✅ تم إضافة ${addedCount} مستخدمين افتراضيين`);
-                console.table(appState.settings.users);
-            }
             return addedCount;
         }
+        ensureDefaultUsers();
 
         // ============================================
-        // تحميل جميع البيانات - في الخلفية
+        // دوال حفظ واسترجاع البيانات - محلياً أولاً
         // ============================================
-        async function loadAllData() {
+        function saveAppStateToLocalStorage() {
             try {
-                const [employees, leaves, attendance, maintenance, inventory, purchases, requests, notifications, settings] = await Promise
-                    .all([
-                        loadCollectionFromFirestore('employees'),
-                        loadCollectionFromFirestore('leaves'),
-                        loadCollectionFromFirestore('attendance'),
-                        loadCollectionFromFirestore('maintenance'),
-                        loadCollectionFromFirestore('inventory'),
-                        loadCollectionFromFirestore('purchases'),
-                        loadCollectionFromFirestore('requests'),
-                        loadCollectionFromFirestore('notifications'),
-                        loadCollectionFromFirestore('settings').then(s => s.length ? s[0] : null)
-                    ]);
+                const stateToSave = {
+                    employees: appState.employees,
+                    leaves: appState.leaves,
+                    attendance: appState.attendance,
+                    maintenance: appState.maintenance,
+                    inventory: appState.inventory,
+                    purchases: appState.purchases,
+                    requests: appState.requests,
+                    notifications: appState.notifications,
+                    settings: appState.settings,
+                    currentActiveUser: appState.currentActiveUser,
+                    currentScreen: appState.currentScreen
+                };
+                localStorage.setItem('gilm_app_state', JSON.stringify(stateToSave));
+            } catch (e) {
+                console.error('Error saving state:', e);
+            }
+        }
 
-                appState.employees = employees.length ? employees : [];
-                appState.leaves = leaves.length ? leaves : [];
-                appState.attendance = attendance.length ? attendance : [];
-                appState.maintenance = maintenance.length ? maintenance : [];
-                appState.inventory = inventory.length ? inventory : [];
-                appState.purchases = purchases.length ? purchases : [];
-                appState.requests = requests.length ? requests : [];
-                appState.notifications = notifications.length ? notifications : [];
+        // حفظ فوري بعد أي تغيير
+        function saveAllData() {
+            saveAppStateToLocalStorage();
+            // مزامنة مع Firebase في الخلفية
+            syncToFirebaseInBackground();
+        }
 
-                if (settings && settings.settings) {
-                    appState.settings = settings.settings;
-                }
+        // ============================================
+        // مزامنة Firebase في الخلفية
+        // ============================================
+        async function syncToFirebaseInBackground() {
+            if (!window.db) return;
+            try {
+                const collections = [
+                    { name: 'employees', data: appState.employees },
+                    { name: 'leaves', data: appState.leaves },
+                    { name: 'attendance', data: appState.attendance },
+                    { name: 'maintenance', data: appState.maintenance },
+                    { name: 'inventory', data: appState.inventory },
+                    { name: 'purchases', data: appState.purchases },
+                    { name: 'requests', data: appState.requests },
+                    { name: 'notifications', data: appState.notifications },
+                    { name: 'settings', data: [{ id: 'main_settings', settings: appState.settings }] }
+                ];
 
-                initializeDefaultUsers();
-
-                if (!appState.settings.slaughterhouses || Object.keys(appState.settings.slaughterhouses).length === 0) {
-                    appState.settings.slaughterhouses = {
-                        "مسالخ منطقة الظفرة": ["مسلخ مدينة غياثي", "مسلخ مدينة السلع"],
-                        "مسالخ مدينة أبوظبي": ["مسلخ بني ياس"],
-                        "مسالخ مدينة العين": ["مسلخ اليحر"]
-                    };
-                }
-
-                await saveAllData();
-                appState.isLoading = false;
-                
-                if (appState.currentActiveUser) {
-                    renderEmployeesTable();
-                    renderLeavesTable();
-                    renderAttendanceTable();
-                    renderMaintenanceTable();
-                    renderInventoryTable();
-                    renderPurchasesTable();
-                    renderRequestsTable();
-                    renderSystemUsersTable();
+                for (const coll of collections) {
+                    const collectionRef = window.collection(window.db, coll.name);
+                    const snapshot = await window.getDocs(collectionRef);
+                    for (const docSnap of snapshot.docs) {
+                        await window.deleteDoc(window.doc(window.db, coll.name, docSnap.id));
+                    }
+                    for (const item of coll.data) {
+                        const docId = item.id ? item.id.toString() : `${coll.name}_${Date.now()}_${Math.random()}`;
+                        await window.setDoc(window.doc(window.db, coll.name, docId), { ...item, _id: docId });
+                    }
                 }
             } catch (e) {
-                console.error("Error loading data:", e);
+                console.error('Firebase sync error:', e);
+            }
+        }
+
+        // استرجاع من Firebase عند التحميل الأول
+        async function loadFromFirebase() {
+            if (!window.db) return;
+            try {
+                const collections = ['employees', 'leaves', 'attendance', 'maintenance', 'inventory', 'purchases', 'requests', 'notifications', 'settings'];
+                let hasData = false;
+                for (const name of collections) {
+                    const collectionRef = window.collection(window.db, name);
+                    const snapshot = await window.getDocs(collectionRef);
+                    const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.data()._id || doc.id }));
+                    if (data.length > 0) {
+                        hasData = true;
+                        if (name === 'employees') appState.employees = data;
+                        else if (name === 'leaves') appState.leaves = data;
+                        else if (name === 'attendance') appState.attendance = data;
+                        else if (name === 'maintenance') appState.maintenance = data;
+                        else if (name === 'inventory') appState.inventory = data;
+                        else if (name === 'purchases') appState.purchases = data;
+                        else if (name === 'requests') appState.requests = data;
+                        else if (name === 'notifications') appState.notifications = data;
+                        else if (name === 'settings' && data.length) {
+                            appState.settings = data[0].settings || appState.settings;
+                        }
+                    }
+                }
+                if (hasData) {
+                    ensureDefaultUsers();
+                    saveAppStateToLocalStorage();
+                }
+                appState.isLoading = false;
+                renderAllTables();
+            } catch (e) {
+                console.error('Firebase load error:', e);
                 appState.isLoading = false;
             }
         }
 
-        async function saveAllData() {
-            if (!window.db) return;
-            try {
-                await Promise.all([
-                    saveCollectionToFirestore('employees', appState.employees),
-                    saveCollectionToFirestore('leaves', appState.leaves),
-                    saveCollectionToFirestore('attendance', appState.attendance),
-                    saveCollectionToFirestore('maintenance', appState.maintenance),
-                    saveCollectionToFirestore('inventory', appState.inventory),
-                    saveCollectionToFirestore('purchases', appState.purchases),
-                    saveCollectionToFirestore('requests', appState.requests),
-                    saveCollectionToFirestore('notifications', appState.notifications),
-                    saveCollectionToFirestore('settings', [{ id: 'main_settings', settings: appState.settings }])
-                ]);
-            } catch (e) { console.error("Error saving:", e); }
+        function renderAllTables() {
+            if (!appState.currentActiveUser) return;
+            renderEmployeesTable();
+            renderLeavesTable();
+            renderAttendanceTable();
+            renderMaintenanceTable();
+            renderInventoryTable();
+            renderPurchasesTable();
+            renderRequestsTable();
+            renderSystemUsersTable();
         }
 
+        let isSidebarOpen = true;
+
         // ============================================
-        // دوال تسجيل الدخول والصلاحيات
+        // دوال الواجهة الأساسية
+        // ============================================
+        function toggleSidebar() {
+            isSidebarOpen = !isSidebarOpen;
+            applySidebarClasses();
+        }
+
+        function applySidebarClasses() {
+            const sidebar = document.getElementById('app-sidebar');
+            const backdrop = document.getElementById('sidebar-backdrop');
+            const isMobile = window.innerWidth < 768;
+
+            if (isMobile) {
+                if (isSidebarOpen) {
+                    sidebar.classList.remove('translate-x-full');
+                    sidebar.classList.add('translate-x-0');
+                    backdrop.classList.remove('hidden');
+                } else {
+                    sidebar.classList.remove('translate-x-0');
+                    sidebar.classList.add('translate-x-full');
+                    backdrop.classList.add('hidden');
+                }
+            } else {
+                backdrop.classList.add('hidden');
+                if (isSidebarOpen) {
+                    sidebar.classList.remove('md:w-0', 'md:overflow-hidden', 'md:opacity-0', 'md:p-0');
+                    sidebar.classList.add('md:w-72', 'md:opacity-100');
+                    sidebar.classList.remove('translate-x-full');
+                    sidebar.classList.add('translate-x-0');
+                } else {
+                    sidebar.classList.add('md:w-0', 'md:overflow-hidden', 'md:opacity-0', 'md:p-0');
+                    sidebar.classList.remove('md:w-72', 'md:opacity-100');
+                    sidebar.classList.add('translate-x-full');
+                    sidebar.classList.remove('translate-x-0');
+                }
+            }
+        }
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) document.getElementById('sidebar-backdrop').classList.add('hidden');
+            applySidebarClasses();
+        });
+
+        function switchScreen(screenId) {
+            appState.currentScreen = screenId;
+            saveAppStateToLocalStorage();
+            
+            document.querySelectorAll('.screen-content').forEach(s => {
+                s.classList.remove('active');
+                s.classList.add('hidden');
+            });
+            
+            const target = document.getElementById(`screen-${screenId}`);
+            if (target) {
+                target.classList.remove('hidden');
+                target.classList.add('active');
+            }
+
+            document.querySelectorAll('.menu-btn').forEach(btn => {
+                if (btn.getAttribute('data-screen') === screenId || (screenId === 'settings-screen' && btn.id ===
+                        'settings-sidebar-btn')) {
+                    btn.classList.add('bg-emerald-800', 'text-white', 'border-r-4', 'border-emerald-400');
+                    btn.classList.remove('hover:bg-slate-800', 'text-slate-100');
+                } else {
+                    btn.classList.remove('bg-emerald-800', 'text-white', 'border-r-4', 'border-emerald-400');
+                    btn.classList.add('hover:bg-slate-800', 'text-slate-100');
+                }
+            });
+
+            if (window.innerWidth < 768) {
+                isSidebarOpen = false;
+                applySidebarClasses();
+            }
+
+            populateEmployeesDropdowns();
+            toggleInputVisibility();
+            populateReportDropdowns();
+        }
+
+        function toggleInputVisibility() {
+            const role = appState.currentActiveUser?.role;
+            const isApproverRole = role === "إداري" || role === "المدير العام";
+            
+            const formContainers = [
+                'emp-form-container',
+                'leave-form-container',
+                'attendance-form-container',
+                'maintenance-form-container',
+                'inventory-form-container',
+                'purchase-form-container',
+                'request-form-container'
+            ];
+            
+            formContainers.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.display = (isApproverRole) ? 'none' : 'block';
+                }
+            });
+            
+            const settingsBtn = document.getElementById('settings-sidebar-btn');
+            const settingsDiv = document.getElementById('settings-divider');
+            if (settingsBtn) {
+                if (isAdmin()) {
+                    settingsBtn.classList.remove('hidden');
+                    if (settingsDiv) settingsDiv.classList.remove('hidden');
+                } else {
+                    settingsBtn.classList.add('hidden');
+                    if (settingsDiv) settingsDiv.classList.add('hidden');
+                }
+            }
+        }
+
+        function updateLiveDateTime() {
+            const now = new Date();
+            document.getElementById('live-time').innerText = now.toLocaleTimeString('ar-EG', { hour12: false });
+            document.getElementById('live-date').innerText = now.toLocaleDateString('ar-EG', { weekday: 'long',
+                year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        setInterval(updateLiveDateTime, 1000);
+
+        // ============================================
+        // دوال تسجيل الدخول
         // ============================================
         function loginUser(empId, code) {
             const user = appState.settings.users.find(u => u.empId === empId && u.code === code);
             if (user) {
                 appState.currentActiveUser = { ...user };
+                saveAppStateToLocalStorage();
                 return true;
             }
             return false;
@@ -1536,59 +1676,77 @@
             return role === "إداري" || role === "المدير العام" || role === "أدمن";
         }
 
-        // ============================================
-        // دوال الصور
-        // ============================================
-        function updateLogoDisplay() {
-            const logo = appState.settings.logoImage;
-            
-            const loginLogo = document.getElementById('login-logo');
-            const loginIcon = document.getElementById('login-logo-icon');
-            if (logo) {
-                loginLogo.src = logo;
-                loginLogo.classList.remove('hidden');
-                loginIcon.classList.add('hidden');
-            } else {
-                loginLogo.classList.add('hidden');
-                loginIcon.classList.remove('hidden');
-            }
-
-            const headerLogo = document.getElementById('header-logo');
-            const headerIcon = document.getElementById('header-logo-icon');
-            if (logo) {
-                headerLogo.src = logo;
-                headerLogo.classList.remove('hidden');
-                headerIcon.classList.add('hidden');
-            } else {
-                headerLogo.classList.add('hidden');
-                headerIcon.classList.remove('hidden');
-            }
-
-            const certLogo = document.getElementById('cert-logo');
-            const certIcon = document.getElementById('cert-logo-icon');
-            if (logo) {
-                certLogo.src = logo;
-                certLogo.classList.remove('hidden');
-                certIcon.classList.add('hidden');
-            } else {
-                certLogo.classList.add('hidden');
-                certIcon.classList.remove('hidden');
-            }
-
-            const settingsLogo = document.getElementById('settings-logo-preview');
-            const settingsIcon = document.getElementById('settings-logo-icon');
-            if (logo) {
-                settingsLogo.src = logo;
-                settingsLogo.classList.remove('hidden');
-                settingsIcon.classList.add('hidden');
-            } else {
-                settingsLogo.classList.add('hidden');
-                settingsIcon.classList.remove('hidden');
-            }
+        function showLogin() {
+            document.getElementById('login-screen').classList.remove('login-hidden');
+            document.getElementById('login-screen').classList.remove('hidden');
+            document.getElementById('main-app').classList.add('hidden');
+            applyBrandingStyles();
         }
 
-        function applyBrandingStyles() {
-            updateLogoDisplay();
+        function showDashboard() {
+            document.getElementById('login-screen').classList.add('login-hidden');
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('main-app').classList.remove('hidden');
+
+            applyBrandingStyles();
+
+            document.getElementById('user-display-info').innerText =
+                `المستخدم: ${appState.currentActiveUser.name} | الرقم: ${appState.currentActiveUser.empId}`;
+            document.getElementById('sidebar-username').innerText = appState.currentActiveUser.name;
+            document.getElementById('sidebar-role').innerText = appState.currentActiveUser.role;
+
+            updateNotificationBadge();
+
+            const setBtn = document.getElementById('settings-sidebar-btn');
+            const setDiv = document.getElementById('settings-divider');
+            if (isAdmin()) {
+                if (setBtn) setBtn.classList.remove('hidden');
+                if (setDiv) setDiv.classList.remove('hidden');
+            } else {
+                if (setBtn) setBtn.classList.add('hidden');
+                if (setDiv) setDiv.classList.add('hidden');
+            }
+
+            updateSlaughterhouseDropdowns();
+            renderSlaughterhousesTree();
+            populateEmployeesDropdowns();
+            populateReportDropdowns();
+            
+            switchScreen(appState.currentScreen || 'emp-manage');
+            renderAllTables();
+            toggleInputVisibility();
+            
+            appState.isInitialized = true;
+        }
+
+        function logout() {
+            appState.currentActiveUser = null;
+            appState.currentScreen = 'emp-manage';
+            saveAppStateToLocalStorage();
+            showLogin();
+        }
+
+        function showToast(message) {
+            const existing = document.querySelector('.toast-message');
+            if (existing) existing.remove();
+            const toast = document.createElement('div');
+            toast.className = 'toast-message';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 400);
+            }, 1200);
+        }
+
+        function alertCustom(message) {
+            showToast(message);
+        }
+
+        function notifyAdminAndGM(message, type = 'info', link = null) {
+            console.log(`📢 [إشعار] ${message}`);
+            addNotification(message, type, link);
         }
 
         // ============================================
@@ -1664,272 +1822,59 @@
         }
 
         // ============================================
-        // دوال الواجهة الأساسية - فورية
+        // دوال الصور
         // ============================================
-        function toggleSidebar() {
-            isSidebarOpen = !isSidebarOpen;
-            applySidebarClasses();
-        }
-
-        function applySidebarClasses() {
-            const sidebar = document.getElementById('app-sidebar');
-            const backdrop = document.getElementById('sidebar-backdrop');
-            const isMobile = window.innerWidth < 768;
-
-            if (isMobile) {
-                if (isSidebarOpen) {
-                    sidebar.classList.remove('translate-x-full');
-                    sidebar.classList.add('translate-x-0');
-                    backdrop.classList.remove('hidden');
-                } else {
-                    sidebar.classList.remove('translate-x-0');
-                    sidebar.classList.add('translate-x-full');
-                    backdrop.classList.add('hidden');
-                }
+        function updateLogoDisplay() {
+            const logo = appState.settings.logoImage;
+            
+            const loginLogo = document.getElementById('login-logo');
+            const loginIcon = document.getElementById('login-logo-icon');
+            if (logo) {
+                loginLogo.src = logo;
+                loginLogo.classList.remove('hidden');
+                loginIcon.classList.add('hidden');
             } else {
-                backdrop.classList.add('hidden');
-                if (isSidebarOpen) {
-                    sidebar.classList.remove('md:w-0', 'md:overflow-hidden', 'md:opacity-0', 'md:p-0');
-                    sidebar.classList.add('md:w-72', 'md:opacity-100');
-                    sidebar.classList.remove('translate-x-full');
-                    sidebar.classList.add('translate-x-0');
-                } else {
-                    sidebar.classList.add('md:w-0', 'md:overflow-hidden', 'md:opacity-0', 'md:p-0');
-                    sidebar.classList.remove('md:w-72', 'md:opacity-100');
-                    sidebar.classList.add('translate-x-full');
-                    sidebar.classList.remove('translate-x-0');
-                }
-            }
-        }
-
-        window.addEventListener('resize', () => {
-            if (window.innerWidth >= 768) document.getElementById('sidebar-backdrop').classList.add('hidden');
-            applySidebarClasses();
-        });
-
-        function switchScreen(screenId) {
-            appState.currentScreen = screenId;
-            
-            document.querySelectorAll('.screen-content').forEach(s => {
-                s.classList.remove('active');
-                s.classList.add('hidden');
-            });
-            
-            const target = document.getElementById(`screen-${screenId}`);
-            if (target) {
-                target.classList.remove('hidden');
-                target.classList.add('active');
+                loginLogo.classList.add('hidden');
+                loginIcon.classList.remove('hidden');
             }
 
-            document.querySelectorAll('.menu-btn').forEach(btn => {
-                if (btn.getAttribute('data-screen') === screenId || (screenId === 'settings-screen' && btn.id ===
-                        'settings-sidebar-btn')) {
-                    btn.classList.add('bg-emerald-800', 'text-white', 'border-r-4', 'border-emerald-400');
-                    btn.classList.remove('hover:bg-slate-800', 'text-slate-100');
-                } else {
-                    btn.classList.remove('bg-emerald-800', 'text-white', 'border-r-4', 'border-emerald-400');
-                    btn.classList.add('hover:bg-slate-800', 'text-slate-100');
-                }
-            });
-
-            if (window.innerWidth < 768) {
-                isSidebarOpen = false;
-                applySidebarClasses();
-            }
-
-            populateEmployeesDropdowns();
-            toggleInputVisibility();
-            populateReportDropdowns();
-            
-            if (appState.currentActiveUser) {
-                localStorage.setItem('gilm_screen', screenId);
-            }
-        }
-
-        function toggleInputVisibility() {
-            const role = appState.currentActiveUser?.role;
-            const isApproverRole = role === "إداري" || role === "المدير العام";
-            
-            const formContainers = [
-                'emp-form-container',
-                'leave-form-container',
-                'attendance-form-container',
-                'maintenance-form-container',
-                'inventory-form-container',
-                'purchase-form-container',
-                'request-form-container'
-            ];
-            
-            formContainers.forEach(id => {
-                const el = document.getElementById(id);
-                if (el) {
-                    el.style.display = (isApproverRole) ? 'none' : 'block';
-                }
-            });
-            
-            const settingsBtn = document.getElementById('settings-sidebar-btn');
-            const settingsDiv = document.getElementById('settings-divider');
-            if (settingsBtn) {
-                if (isAdmin()) {
-                    settingsBtn.classList.remove('hidden');
-                    if (settingsDiv) settingsDiv.classList.remove('hidden');
-                } else {
-                    settingsBtn.classList.add('hidden');
-                    if (settingsDiv) settingsDiv.classList.add('hidden');
-                }
-            }
-        }
-
-        function updateLiveDateTime() {
-            const now = new Date();
-            document.getElementById('live-time').innerText = now.toLocaleTimeString('ar-EG', { hour12: false });
-            document.getElementById('live-date').innerText = now.toLocaleDateString('ar-EG', { weekday: 'long',
-                year: 'numeric', month: 'long', day: 'numeric' });
-        }
-        setInterval(updateLiveDateTime, 1000);
-
-        // ============================================
-        // استعادة الجلسة فوراً
-        // ============================================
-        function restoreSession() {
-            const savedUser = localStorage.getItem('gilm_user');
-            const savedScreen = localStorage.getItem('gilm_screen');
-            
-            if (savedUser) {
-                try {
-                    const user = JSON.parse(savedUser);
-                    const validUser = appState.settings.users.find(u => u.empId === user.empId && u.code === user.code);
-                    if (validUser) {
-                        appState.currentActiveUser = validUser;
-                        if (savedScreen) {
-                            appState.currentScreen = savedScreen;
-                        } else {
-                            appState.currentScreen = 'emp-manage';
-                        }
-                        return true;
-                    }
-                } catch (e) {
-                    console.error('Error restoring session:', e);
-                }
-            }
-            return false;
-        }
-
-        function showLogin() {
-            document.getElementById('login-screen').classList.remove('login-hidden');
-            document.getElementById('login-screen').classList.remove('hidden');
-            document.getElementById('main-app').classList.add('hidden');
-            applyBrandingStyles();
-        }
-
-        function showDashboard() {
-            document.getElementById('login-screen').classList.add('login-hidden');
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('main-app').classList.remove('hidden');
-
-            applyBrandingStyles();
-
-            document.getElementById('user-display-info').innerText =
-                `المستخدم: ${appState.currentActiveUser.name} | الرقم: ${appState.currentActiveUser.empId}`;
-            document.getElementById('sidebar-username').innerText = appState.currentActiveUser.name;
-            document.getElementById('sidebar-role').innerText = appState.currentActiveUser.role;
-
-            updateNotificationBadge();
-
-            const setBtn = document.getElementById('settings-sidebar-btn');
-            const setDiv = document.getElementById('settings-divider');
-            if (isAdmin()) {
-                if (setBtn) setBtn.classList.remove('hidden');
-                if (setDiv) setDiv.classList.remove('hidden');
+            const headerLogo = document.getElementById('header-logo');
+            const headerIcon = document.getElementById('header-logo-icon');
+            if (logo) {
+                headerLogo.src = logo;
+                headerLogo.classList.remove('hidden');
+                headerIcon.classList.add('hidden');
             } else {
-                if (setBtn) setBtn.classList.add('hidden');
-                if (setDiv) setDiv.classList.add('hidden');
+                headerLogo.classList.add('hidden');
+                headerIcon.classList.remove('hidden');
             }
 
-            updateSlaughterhouseDropdowns();
-            renderSlaughterhousesTree();
-            populateEmployeesDropdowns();
-            populateReportDropdowns();
-            
-            const lastScreen = appState.currentScreen || 'emp-manage';
-            switchScreen(lastScreen);
-            
-            renderEmployeesTable();
-            renderLeavesTable();
-            renderAttendanceTable();
-            renderMaintenanceTable();
-            renderInventoryTable();
-            renderPurchasesTable();
-            renderRequestsTable();
-            renderSystemUsersTable();
-            toggleInputVisibility();
-            
-            appState.isInitialized = true;
-            
-            if (!appState.isLoading) {
-                loadAllData();
-            }
-        }
-
-        function logout() {
-            appState.currentActiveUser = null;
-            appState.currentScreen = 'emp-manage';
-            localStorage.removeItem('gilm_user');
-            localStorage.removeItem('gilm_screen');
-            saveAllData();
-            showLogin();
-        }
-
-        function showToast(message) {
-            const existing = document.querySelector('.toast-message');
-            if (existing) existing.remove();
-            const toast = document.createElement('div');
-            toast.className = 'toast-message';
-            toast.textContent = message;
-            document.body.appendChild(toast);
-            setTimeout(() => {
-                toast.style.opacity = '0';
-                toast.style.transition = 'opacity 0.3s ease';
-                setTimeout(() => toast.remove(), 400);
-            }, 1200);
-        }
-
-        function alertCustom(message) {
-            showToast(message);
-        }
-
-        function notifyAdminAndGM(message, type = 'info', link = null) {
-            console.log(`📢 [إشعار] ${message}`);
-            addNotification(message, type, link);
-        }
-
-        // ============================================
-        // حفظ الحالة عند التحديث
-        // ============================================
-        window.addEventListener('beforeunload', function(e) {
-            if (appState.currentActiveUser) {
-                localStorage.setItem('gilm_user', JSON.stringify(appState.currentActiveUser));
-                localStorage.setItem('gilm_screen', appState.currentScreen);
-            }
-        });
-
-        // ============================================
-        // دوال تسجيل الدخول
-        // ============================================
-        document.getElementById('login-form').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const empId = document.getElementById('login-emp-id').value.trim();
-            const code = document.getElementById('login-code').value.trim();
-
-            if (loginUser(empId, code)) {
-                document.getElementById('login-error').classList.add('hidden');
-                localStorage.setItem('gilm_user', JSON.stringify(appState.currentActiveUser));
-                localStorage.setItem('gilm_screen', 'emp-manage');
-                showDashboard();
+            const certLogo = document.getElementById('cert-logo');
+            const certIcon = document.getElementById('cert-logo-icon');
+            if (logo) {
+                certLogo.src = logo;
+                certLogo.classList.remove('hidden');
+                certIcon.classList.add('hidden');
             } else {
-                document.getElementById('login-error').classList.remove('hidden');
+                certLogo.classList.add('hidden');
+                certIcon.classList.remove('hidden');
             }
-        });
+
+            const settingsLogo = document.getElementById('settings-logo-preview');
+            const settingsIcon = document.getElementById('settings-logo-icon');
+            if (logo) {
+                settingsLogo.src = logo;
+                settingsLogo.classList.remove('hidden');
+                settingsIcon.classList.add('hidden');
+            } else {
+                settingsLogo.classList.add('hidden');
+                settingsIcon.classList.remove('hidden');
+            }
+        }
+
+        function applyBrandingStyles() {
+            updateLogoDisplay();
+        }
 
         // ============================================
         // دوال المسالخ
@@ -2113,7 +2058,7 @@
                 return;
             }
             appState.settings.slaughterhouses[name] = [];
-            await saveAllData();
+            saveAllData();
             document.getElementById('new-main-slaughterhouse').value = '';
             updateSlaughterhouseDropdowns();
             renderSlaughterhousesTree();
@@ -2131,7 +2076,7 @@
                 return;
             }
             appState.settings.slaughterhouses[mainName].push(subName);
-            await saveAllData();
+            saveAllData();
             document.getElementById('new-sub-slaughterhouse').value = '';
             updateSlaughterhouseDropdowns();
             renderSlaughterhousesTree();
@@ -2142,7 +2087,7 @@
             if (!isAdmin()) return;
             if (confirm(`حذف الفرع (${subName})؟`)) {
                 appState.settings.slaughterhouses[mainName] = appState.settings.slaughterhouses[mainName].filter(s => s !== subName);
-                await saveAllData();
+                saveAllData();
                 renderSlaughterhousesTree();
                 updateSlaughterhouseDropdowns();
             }
@@ -2152,7 +2097,7 @@
             if (!isAdmin()) return;
             if (confirm(`حذف المسلخ الرئيسي (${mainName}) وجميع فروعه؟`)) {
                 delete appState.settings.slaughterhouses[mainName];
-                await saveAllData();
+                saveAllData();
                 renderSlaughterhousesTree();
                 updateSlaughterhouseDropdowns();
             }
@@ -2299,7 +2244,7 @@
                 notifyAdminAndGM(`موظف جديد: ${name} (${empId})`, 'info');
             }
 
-            await saveAllData();
+            saveAllData();
             resetEmpForm();
             renderEmployeesTable();
             populateEmployeesDropdowns();
@@ -2340,7 +2285,7 @@
             if (confirm("حذف الموظف نهائياً؟")) {
                 const emp = appState.employees.find(e => e.empId === empId);
                 appState.employees = appState.employees.filter(e => e.empId !== empId);
-                await saveAllData();
+                saveAllData();
                 renderEmployeesTable();
                 populateEmployeesDropdowns();
                 populateReportDropdowns();
@@ -2355,6 +2300,51 @@
             const diffTime = Math.abs(end - start);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
             return diffDays;
+        }
+
+        function renderEmployeesTable() {
+            const tbody = document.getElementById('emp-table-body');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const filterMain = document.getElementById('filter-emp-main')?.value || '';
+            const filterSub = document.getElementById('filter-emp-sub')?.value || '';
+            const search = document.getElementById('emp-search')?.value?.toLowerCase() || '';
+
+            const filtered = appState.employees.filter(emp => {
+                const matchesMain = !filterMain || emp.mainSlaughterhouse === filterMain;
+                const matchesSub = !filterSub || emp.subSlaughterhouse === filterSub;
+                const matchesSearch = emp.name.toLowerCase().includes(search) || emp.empId.toLowerCase().includes(search);
+                return matchesMain && matchesSub && matchesSearch;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML =
+                    `<tr><td colspan="9" class="text-center py-8 text-gray-400">لا يوجد موظفين</td></tr>`;
+                return;
+            }
+
+            filtered.forEach(emp => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b hover:bg-slate-50 transition text-xs";
+                tr.innerHTML = `
+                        <td class="px-4 py-3 font-semibold text-emerald-800">${emp.empId}</td>
+                        <td class="px-4 py-3 font-semibold text-slate-800">${emp.name}</td>
+                        <td class="px-4 py-3">${emp.job}</td>
+                        <td class="px-4 py-3 text-[10px]">${emp.mainSlaughterhouse || ''}<br><span class="text-gray-400">${emp.subSlaughterhouse || ''}</span></td>
+                        <td class="px-4 py-3">${emp.nationality}</td>
+                        <td class="px-4 py-3">${emp.certificates?.length ? emp.certificates.join('، ') : '-'}</td>
+                        <td class="px-4 py-3 font-bold text-emerald-800">${parseInt(emp.salary).toLocaleString()}</td>
+                        <td class="px-4 py-3 font-bold text-amber-600">${emp.leaveBalance || 30}</td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                                <button onclick="editEmployee('${emp.empId}')" class="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-[10px]"><i class="fa-solid fa-pen"></i></button>
+                                ${canInput() ? `<button onclick="deleteEmployee('${emp.empId}')" class="px-2 py-1 bg-rose-600 hover:bg-rose-700 text-white rounded text-[10px]"><i class="fa-solid fa-trash"></i></button>` : ''}
+                            </div>
+                        </td>
+                    `;
+                tbody.appendChild(tr);
+            });
         }
 
         // ============================================
@@ -2504,12 +2494,11 @@
             let certText = '';
             let certTitle = '';
 
-            // نص الشهادة كامل بدون قوائم
             if (certType === 'راتب') {
                 certTitle = 'شهادة راتب';
                 certText = `
                     <p>تشهد شركة الجزيرة الخضراء لتجارة الأغنام والمواشي بأن الموظف <strong>${emp.name}</strong> الذي يحمل الجنسية <strong>${emp.nationality}</strong> ورقم الجواز <strong>${emp.passport}</strong> ورقم الهوية <strong>${emp.nid}</strong> يعمل لديها بوظيفة <strong>${emp.job}</strong> برقم وظيفي <strong>${emp.empId}</strong> منذ تاريخ <strong>${hireDate}</strong>.</p>
-                    <p>يبلغ الراتب الأساسي الشهري للموظف مبلغ <strong>${salary.toLocaleString()} درهم</strong>، وعدد أيام حضوره لهذا الشهر <strong>${attendanceCount} يوم</strong>.</p>
+                    <p>يبلغ الراتب الأساسي الشهري للموظف مبلغ <strong>${salary.toLocaleString()} درهم</strong>.</p>
                     <p>وتمنح هذه الشهادة بناءً على طلب الموظف لتكون سنداً له لدى الجهات المعنية، وتخلو الشركة من أي مسؤولية تجاه الغير فيما يخص هذه الشهادة.</p>
                 `;
             } else if (certType === 'خبرة') {
@@ -2620,7 +2609,7 @@
             };
 
             appState.leaves.push(leaveObj);
-            await saveAllData();
+            saveAllData();
             document.getElementById('leave-form').reset();
             renderLeavesTable();
             renderEmployeesTable();
@@ -2662,7 +2651,7 @@
                 appState.leaves[idx].status = "موافقة جزئية";
             }
 
-            await saveAllData();
+            saveAllData();
             renderLeavesTable();
             
             const leave = appState.leaves[idx];
@@ -2685,7 +2674,7 @@
                     }
                 }
                 appState.leaves = appState.leaves.filter(l => l.id !== id);
-                await saveAllData();
+                saveAllData();
                 renderLeavesTable();
                 renderEmployeesTable();
             }
@@ -2809,7 +2798,7 @@
             }
 
             appState.attendance.push({ id: Date.now(), empId, date, status, timeIn, timeOut });
-            await saveAllData();
+            saveAllData();
             renderAttendanceTable();
             const emp = appState.employees.find(e => e.empId === empId);
             notifyAdminAndGM(`تسجيل حضور: ${emp ? emp.name : empId} - ${status}`, 'info');
@@ -2908,7 +2897,7 @@
                 date: new Date().toLocaleDateString('ar-EG'),
                 status: "قيد المراجعة"
             });
-            await saveAllData();
+            saveAllData();
             document.getElementById('maintenance-form').reset();
             renderMaintenanceTable();
             notifyAdminAndGM(`طلب صيانة: ${asset} - ${priority}`, 'maintenance', 'maintenance-manage');
@@ -2922,7 +2911,7 @@
             appState.maintenance[idx].status = "معتمد من الإدارة";
             appState.maintenance[idx].approvedBy = appState.currentActiveUser.name;
             appState.maintenance[idx].approvedDate = new Date().toLocaleString('ar-EG');
-            await saveAllData();
+            saveAllData();
             renderMaintenanceTable();
             alertCustom(`✅ تم الاعتماد بواسطة ${appState.currentActiveUser.name}`);
         }
@@ -2932,7 +2921,7 @@
             const idx = appState.maintenance.findIndex(m => m.id === id);
             if (idx > -1) {
                 appState.maintenance[idx].status = newStatus;
-                await saveAllData();
+                saveAllData();
                 renderMaintenanceTable();
             }
         }
@@ -2941,7 +2930,7 @@
             if (!canInput()) return;
             if (confirm("حذف بلاغ الصيانة؟")) {
                 appState.maintenance = appState.maintenance.filter(m => m.id !== id);
-                await saveAllData();
+                saveAllData();
                 renderMaintenanceTable();
             }
         }
@@ -3064,7 +3053,7 @@
                 alertCustom("✅ تم إضافة الصنف");
             }
 
-            await saveAllData();
+            saveAllData();
             document.getElementById('inventory-form').reset();
             document.getElementById('inv-unit-custom').classList.add('hidden');
             renderInventoryTable();
@@ -3152,7 +3141,7 @@
                 subLocation,
                 status: "قيد المراجعة"
             });
-            await saveAllData();
+            saveAllData();
             document.getElementById('purchase-form').reset();
             renderPurchasesTable();
             notifyAdminAndGM(`فاتورة جديدة: ${invoice} - ${vendor} - ${price} درهم`, 'purchase', 'purchases-manage');
@@ -3166,7 +3155,7 @@
             appState.purchases[idx].status = "معتمدة";
             appState.purchases[idx].approvedBy = appState.currentActiveUser.name;
             appState.purchases[idx].approvedDate = new Date().toLocaleString('ar-EG');
-            await saveAllData();
+            saveAllData();
             renderPurchasesTable();
             alertCustom(`✅ تم اعتماد الفاتورة بواسطة ${appState.currentActiveUser.name}`);
         }
@@ -3175,7 +3164,7 @@
             if (!canInput()) return;
             if (confirm("حذف الفاتورة؟")) {
                 appState.purchases = appState.purchases.filter(p => p.id !== id);
-                await saveAllData();
+                saveAllData();
                 renderPurchasesTable();
             }
         }
@@ -3266,7 +3255,7 @@
                 date: new Date().toLocaleDateString('ar-EG'),
                 status: "قيد المراجعة"
             });
-            await saveAllData();
+            saveAllData();
             document.getElementById('request-form').reset();
             document.getElementById('req-unit-custom').classList.add('hidden');
             renderRequestsTable();
@@ -3281,7 +3270,7 @@
             appState.requests[idx].status = "معتمد";
             appState.requests[idx].approvedBy = appState.currentActiveUser.name;
             appState.requests[idx].approvedDate = new Date().toLocaleString('ar-EG');
-            await saveAllData();
+            saveAllData();
             renderRequestsTable();
             alertCustom(`✅ تم اعتماد الطلب بواسطة ${appState.currentActiveUser.name}`);
         }
@@ -3290,7 +3279,7 @@
             if (!canInput()) return;
             if (confirm("حذف الطلب؟")) {
                 appState.requests = appState.requests.filter(r => r.id !== id);
-                await saveAllData();
+                saveAllData();
                 renderRequestsTable();
             }
         }
@@ -3422,7 +3411,7 @@
                 const reader = new FileReader();
                 reader.onload = async function(e) {
                     appState.settings.logoImage = e.target.result;
-                    await saveAllData();
+                    saveAllData();
                     applyBrandingStyles();
                     alertCustom("✅ تم تغيير الشعار");
                 };
@@ -3432,7 +3421,7 @@
 
         async function resetLogo() {
             appState.settings.logoImage = null;
-            await saveAllData();
+            saveAllData();
             applyBrandingStyles();
             alertCustom("تم إزالة الشعار");
         }
@@ -3463,7 +3452,7 @@
             }
 
             appState.settings.users.push({ empId, name, code, role });
-            await saveAllData();
+            saveAllData();
             document.getElementById('user-form').reset();
             renderSystemUsersTable();
             alertCustom(`✅ تم إنشاء المستخدم ${name}`);
@@ -3474,7 +3463,7 @@
             if (empId === "70062") { alertCustom("لا يمكن حذف الأدمن"); return; }
             if (confirm("حذف هذا المستخدم؟")) {
                 appState.settings.users = appState.settings.users.filter(u => u.empId !== empId);
-                await saveAllData();
+                saveAllData();
                 renderSystemUsersTable();
                 alertCustom("تم حذف المستخدم");
             }
@@ -3511,87 +3500,61 @@
         }
 
         // ============================================
-        // بدء التشغيل - فوري جداً
+        // بدء التشغيل
         // ============================================
-        window.onload = function() {
-            // جلب البيانات من localStorage فوراً
-            const savedUser = localStorage.getItem('gilm_user');
-            const savedScreen = localStorage.getItem('gilm_screen');
-            
-            // تهيئة المستخدمين الافتراضيين أولاً
-            appState.settings.users = DEFAULT_USERS.map(u => ({ ...u }));
-            
-            // محاولة استعادة الجلسة فوراً - بدون أي تأخير
-            if (savedUser) {
-                try {
-                    const user = JSON.parse(savedUser);
-                    const validUser = appState.settings.users.find(u => u.empId === user.empId && u.code === user.code);
-                    if (validUser) {
-                        appState.currentActiveUser = validUser;
-                        appState.currentScreen = savedScreen || 'emp-manage';
-                        
-                        // إخفاء شاشة الدخول وعرض الواجهة فوراً
-                        document.getElementById('login-screen').classList.add('login-hidden');
-                        document.getElementById('login-screen').classList.add('hidden');
-                        document.getElementById('main-app').classList.remove('hidden');
-                        
-                        // تحديث الواجهة فوراً
-                        updateLiveDateTime();
-                        populateNationalities();
-                        generateNextEmpId();
-                        applyBrandingStyles();
-                        
-                        document.getElementById('user-display-info').innerText =
-                            `المستخدم: ${appState.currentActiveUser.name} | الرقم: ${appState.currentActiveUser.empId}`;
-                        document.getElementById('sidebar-username').innerText = appState.currentActiveUser.name;
-                        document.getElementById('sidebar-role').innerText = appState.currentActiveUser.role;
-                        
-                        updateSlaughterhouseDropdowns();
-                        renderSlaughterhousesTree();
-                        populateEmployeesDropdowns();
-                        populateReportDropdowns();
-                        
-                        switchScreen(appState.currentScreen);
-                        renderEmployeesTable();
-                        renderLeavesTable();
-                        renderAttendanceTable();
-                        renderMaintenanceTable();
-                        renderInventoryTable();
-                        renderPurchasesTable();
-                        renderRequestsTable();
-                        renderSystemUsersTable();
-                        toggleInputVisibility();
-                        
-                        appState.isInitialized = true;
-                        
-                        // تحميل البيانات من Firebase في الخلفية
-                        loadAllData().then(() => {
-                            renderEmployeesTable();
-                            renderLeavesTable();
-                            renderAttendanceTable();
-                            renderMaintenanceTable();
-                            renderInventoryTable();
-                            renderPurchasesTable();
-                            renderRequestsTable();
-                            renderSystemUsersTable();
-                        });
-                        
-                        return;
-                    }
-                } catch (e) {
-                    console.error('Error restoring session:', e);
-                }
+        document.getElementById('login-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const empId = document.getElementById('login-emp-id').value.trim();
+            const code = document.getElementById('login-code').value.trim();
+
+            if (loginUser(empId, code)) {
+                document.getElementById('login-error').classList.add('hidden');
+                showDashboard();
+            } else {
+                document.getElementById('login-error').classList.remove('hidden');
             }
-            
-            // إذا لم توجد جلسة، عرض شاشة الدخول
-            showLogin();
-            
-            // تحميل البيانات في الخلفية
-            loadAllData();
+        });
+
+        window.onload = function() {
+            updateLiveDateTime();
+            populateNationalities();
+            generateNextEmpId();
+            applyBrandingStyles();
+
+            // محاولة استعادة الجلسة
+            if (appState.currentActiveUser) {
+                showDashboard();
+                // تحميل من Firebase في الخلفية بعد 2 ثانية
+                setTimeout(() => {
+                    loadFromFirebase();
+                }, 2000);
+            } else {
+                showLogin();
+                // تحميل من Firebase في الخلفية
+                setTimeout(() => {
+                    loadFromFirebase().then(() => {
+                        // إذا كان هناك مستخدم محفوظ في localStorage ولكن لم يتم العثور عليه
+                        // حاول مرة أخرى
+                        const savedUser = localStorage.getItem('gilm_user');
+                        if (savedUser) {
+                            try {
+                                const user = JSON.parse(savedUser);
+                                const validUser = appState.settings.users.find(u => u.empId === user.empId && u.code === user.code);
+                                if (validUser) {
+                                    appState.currentActiveUser = validUser;
+                                    showDashboard();
+                                }
+                            } catch (e) {}
+                        }
+                    });
+                }, 1000);
+            }
         };
 
-        console.log("✅ النظام جاهز مع المستخدمين:");
-        console.table(DEFAULT_USERS);
+        console.log("✅ النظام جاهز مع حفظ البيانات تلقائياً");
+        console.log("📦 عدد الموظفين:", appState.employees.length);
+        console.log("📦 عدد الإجازات:", appState.leaves.length);
+        console.log("📦 عدد الحضور:", appState.attendance.length);
     </script>
 
 </body>
